@@ -1,4 +1,24 @@
 	
+	function PingHTTPserver()
+	{
+	   fetch('http://localhost:8081/',
+	   {
+		   method  : 'HEAD',
+	   })
+	   .then( function(res) {	
+								//console.log($("imgStatus").src);
+								if ((res.status == 200) && ($("imgStatus").src.indexOf("animation.gif") == -1))
+								{
+									$("imgStatus").src ="animation.gif";
+								}
+							})
+	   .catch(function(err) {
+								if ($("imgStatus").src.indexOf("static.png") == -1)
+									$("imgStatus").src = "static.png";
+							});
+    }
+	
+	
 	
 	function SaveConfiguration()
 	{
@@ -55,6 +75,8 @@
 
 	async function FetchConfiguration()
 	{
+		if (confirm("Do you want to load profile?") == false) return;
+
 		try
 		{
 			const response = await fetch('http://localhost:8081/config.json');

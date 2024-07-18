@@ -6,7 +6,8 @@
 	let c = $("FrontCanvas");
 	let ctx = c.getContext("2d");
 	
-	var idInterval   = -1;	// interval identifier
+	var idInterval       = -1;	// update interval identifier
+	var idIntervalPing   = -1;	// ping interval identifier
 	
 	var iTimeMSstart = Date.now();
 	var iMScurrent   = 0;
@@ -20,7 +21,7 @@
 	
 	var iLeftMargin   = 150;
 	var iRightMargin  = 340;
-	var iTopMargin    = 70;
+	var iTopMargin    = 50;
 	var iBottomMargin = 110;
 	
 	var iLeftAbs   = iLeftMargin;
@@ -94,6 +95,13 @@
 		DrawPlot();
 	}
 	
+	function OnInit()
+	{
+		InitGUIparamsFromCodeValues();
+
+		idIntervalPing = setInterval(PingHTTPserver, 1000);
+	}
+
 
 	// GUI init
 	function InitGUIparamsFromCodeValues()
@@ -119,7 +127,6 @@
 		$("idSolarEnergyMax").value  = fSolarEnergyMax;
 		
 		DrawPlot();
-		
 	}
 
 	// GUI to document
@@ -299,6 +306,8 @@
 	function DrawRangeMarks()
 	{
 		ctx.font = "bold 20px serif";
+		
+		let fStepH = (iBottomAbs - iTopAbs)/10;
 
 		// Temperature
 		ctx.fillStyle = $("idTemperatureColor").value;
@@ -311,7 +320,7 @@
 		let fDelta  = (fTemperatureMax - fTemperatureMin)/10;
 		for (i=0; i<=10; i++)
 		{
-				ctx.fillText(Number(fCurrent.toFixed(1)), 10, iBottomAbs - 5 - i*80);
+				ctx.fillText(Number(fCurrent.toFixed(1)), 10, iBottomAbs - 5 - i*fStepH);
 				fCurrent = fCurrent + fDelta;
 		}
 		
@@ -331,7 +340,7 @@
 		fDelta  = (fPressureMax - fPressureMin)/10;
 		for (i=0; i<=10; i++)
 		{
-				ctx.fillText(Number(fCurrent.toFixed(1)), 70, iBottomAbs - 5 - i*80);
+				ctx.fillText(Number(fCurrent.toFixed(1)), 70, iBottomAbs - 5 - i*fStepH);
 				fCurrent = fCurrent + fDelta;
 		}
 		
@@ -346,7 +355,7 @@
 		fDelta  = (fSolarEnergyMax - fSolarEnergyMin)/10;
 		for (i=0; i<=10; i++)
 		{
-				ctx.fillText(Number(fCurrent.toFixed(1)), c.width - 310, iBottomAbs - 5 - i*80);
+				ctx.fillText(Number(fCurrent.toFixed(1)), c.width - 310, iBottomAbs - 5 - i*fStepH);
 				fCurrent = fCurrent + fDelta;
 		}
 		
@@ -361,7 +370,7 @@
 		fDelta  = (fThermocoupleMax - fThermocoupleMin)/10;
 		for (i=0; i<=10; i++)
 		{
-				ctx.fillText(Number(fCurrent.toFixed(1)), c.width - 220, iBottomAbs - 5 - i*80);
+				ctx.fillText(Number(fCurrent.toFixed(1)), c.width - 220, iBottomAbs - 5 - i*fStepH);
 				fCurrent = fCurrent + fDelta;
 		}
 		
@@ -376,7 +385,7 @@
 		fDelta  = (fThermistorRMax - fThermistorRMin)/10;
 		for (i=0; i<=10; i++)
 		{
-				ctx.fillText(Number(fCurrent.toFixed(1)), c.width - 150, iBottomAbs - 5 - i*80);
+				ctx.fillText(Number(fCurrent.toFixed(1)), c.width - 150, iBottomAbs - 5 - i*fStepH);
 				fCurrent = fCurrent + fDelta;
 		}
 		
@@ -391,7 +400,7 @@
 		fDelta  = (fThermistorVMax - fThermistorVMin)/10;
 		for (i=0; i<=10; i++)
 		{
-				ctx.fillText(fCurrent.toFixed(2), c.width - 70, iBottomAbs - 5 - i*80);
+				ctx.fillText(fCurrent.toFixed(2), c.width - 70, iBottomAbs - 5 - i*fStepH);
 				fCurrent = fCurrent + fDelta;
 		}
 	}
@@ -464,7 +473,7 @@
 
 		ctx.strokeRect(iLeftAbs, iTopAbs, c.width-iRightMargin - iLeftMargin, c.height-iTopMargin - iBottomMargin);
 		
-		// STEP: draw vertical dash lines
+		// STEP: draw vertical dash lines / ticks
 		ctx.strokeStyle = "black";
 		ctx.setLineDash([]);
 		ctx.lineWidth = 1;
@@ -493,11 +502,12 @@
 		//ctx.setLineDash([5,10]);
 		ctx.lineWidth = 1;
 
+		let fStepH = (iBottomAbs - iTopAbs)/10;
 		for (i=0; i<=10; i++)
 		{
 			ctx.beginPath();
-				ctx.moveTo(0,       iTopAbs + i*80);
-				ctx.lineTo(c.width, iTopAbs + i*80);
+				ctx.moveTo(0,       iTopAbs + i*fStepH);
+				ctx.lineTo(c.width, iTopAbs + i*fStepH);
 			ctx.stroke();
 		}
 		

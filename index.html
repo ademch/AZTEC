@@ -22,15 +22,25 @@
 		width: 18px;
 		height: 18px;
 	}
-	table, th, td {
+	th, td {
 		border: 1px solid black;
 	}
 </style>
 
 </head>
-<body onLoad="InitGUIparamsFromCodeValues()">
+<body onLoad="OnInit()">
 
-<h2 align="center">BARA/FOA AZTEC</h2>
+<table style="width:100%">
+  <tr>
+    <td style="width:90%">
+		<h2 align="center">BARA/FOA AZTEC</h2>
+	</td>
+    <td align="center" style="width:3%" >
+		<img src="static.png" id="imgStatus" width="56" style="border:5px outset silver;">
+	</td>
+  </tr>
+</table>
+
 
 <table style="width:100%">
   <tr valign="bottom">
@@ -180,15 +190,15 @@
 			<button type="button" class="REST" onclick="DrawPlot()" style="width: 140px; height:26px; font-size: 14px;">Apply</button>
 			<br><br>
 			<button type="button" class="REST" onclick="SaveConfiguration()" style="width: 140px; height:26px; font-size: 14px;">Save configuration</button>
-			<br><br>
 			<button type="button" class="REST" onclick="FetchConfiguration()"  style="width: 140px; height:26px; font-size: 14px;">Load configuation</button>
 		</div>
 	  </td>
   </tr>
   <tr>
-	  <td align="center">
+	  <td style="height:90px" align="center" valign="middle">
 		<button type="button" class="REST" onclick="StartAutoUpdate()" style="width: 140px; height:26px; font-size: 14px;">Start monitoring</button>
 		<button type="button" class="REST" onclick="StopAutoUpdate()"  style="width: 140px; height:26px; font-size: 14px;">Stop monitoring</button>
+		<br>
 	  </td>
   </tr>
 </table> 

@@ -27,6 +27,7 @@
 
 void sendGETresponse(int fd, char strFilePath[], char strResponse[]);
 void sendPUTresponse(int fd, char strFilePath[], char strBody[], char strResponse[]);
+void sendHEADresponse(int fd, char strFilePath[], char strResponse[]);
 //void report(struct sockaddr_in *serverAddress);
 
 //https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
@@ -130,9 +131,21 @@ int CreateHTTPserver(MS5611* ms5611, ADS1256* ads1256)
             char strFilePath[500] = {0};
             char strResponse[500] = {0};
 
-            if (!strcmp(strHTTP_requestMethod, "GET"))
+            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
+            if (!strcmp(strHTTP_requestMethod, "HEAD"))
             {
-                // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
+                if(!strcmp(strHTTP_requestPath, "/"))
+                {
+                    //case that the strHTTP_requestPath = "/"  --> Send index.html file
+
+                    sprintf(strFilePath, "./index.html");
+                    sprintf(strResponse, "%s%s", HTTP_200HEADER, "Content-Type: text/html\r\n");
+
+                    sendHEADresponse(clientSocket, strFilePath, strResponse);
+                }
+			}
+            else if (!strcmp(strHTTP_requestMethod, "GET"))
+            {
                 if(!strcmp(strHTTP_requestPath, "/"))
                 {
                     //case that the strHTTP_requestPath = "/"  --> Send index.html file
@@ -247,9 +260,15 @@ int CreateHTTPserver(MS5611* ms5611, ADS1256* ads1256)
                 }
                 else if (!strcmp(strHTTPreqExt, "js"))
                 {
-                    //javascript
                     sprintf(strFilePath, ".%s", strHTTP_requestPath);
                     sprintf(strResponse, "%s%s", HTTP_200HEADER, "Content-Type: text/javascript\r\n");
+
+                    sendGETresponse(clientSocket, strFilePath, strResponse);
+                }
+                else if (!strcmp(strHTTPreqExt, "gif"))
+                {
+                    sprintf(strFilePath, ".%s", strHTTP_requestPath);
+                    sprintf(strResponse, "%s%s", HTTP_200HEADER, "Content-Type: image/gif\r\n");
 
                     sendGETresponse(clientSocket, strFilePath, strResponse);
                 }
@@ -351,6 +370,40 @@ void sendGETresponse(int fd, char strFilePath[], char strResponse[])
 	}
 	close(fdFile);
 }
+
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/HEAD
+void sendHEADresponse(int fd, char strFilePath[], char strResponse[])
+{
+    int fdFile = open(strFilePath, O_RDONLY);
+    if (fdFile < 0)
+    {
+		sprintf(strResponse, "%s", HTTP_404HEADER);
+		write(fd, strResponse, strlen(strResponse));
+		
+        printf("\nCannot open file path : %s with error %d\n", strFilePath, fdFile);
+        perror("");
+        printf("Response:\n%s\n", strResponse); 
+        
+        return;
+    }
+     
+    struct stat stat_buf;  // hold information about input file
+    fstat(fdFile, &stat_buf);
+    
+    int img_total_size = stat_buf.st_size;
+    //printf("image block size: %d\n", stat_buf.st_blksize);  
+    //printf("image total byte st_size: %d\n", stat_buf.st_size);
+    
+	// append another header
+	char* strOffset = strResponse + strlen(strResponse);
+	sprintf(strOffset, "Content-Length: %d\r\n\r\n", img_total_size);
+
+    write(fd, strResponse, strlen(strResponse));
+    printf("\nResponse:\n%s\n", strResponse); 
+
+	close(fdFile);
+}
+
 
 void sendPUTresponse(int fd, char strFilePath[], char strBody[], char strResponse[])
 {
