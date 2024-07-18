@@ -1,0 +1,1 @@
+{"MS5611":{"Temperature":{"TemperatureMin":-30,"TemperatureMax":70},"Pressure":{"PressureMin":0,"PressureMax":200}},"ADS1256":{"Thermocouple":{"ThermocoupleMin":0,"ThermocoupleMax":20},"ThermistorV":{"ThermistorVMin":1.5,"ThermistorVMax":2},"ThermistorR":{"ThermistorRMin":150,"ThermistorRMax":200},"Flux":{"FluxMin":0,"FluxMax":3000}}}
