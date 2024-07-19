@@ -1,4 +1,4 @@
-
+	"use strict";
 
     var $  = function( id ) { return document.getElementById( id ); };
     var $F = function( id ) { return parseFloat(document.getElementById( id ).value); };
@@ -11,6 +11,12 @@
 	
 	var iTimeMSstart = Date.now();
 	var iMScurrent   = 0;
+
+	var iTimeMSCompressedThreshold = 0;
+	var iTimeMSTotalThreshold = 0;
+	var iStepCompressed = 10;
+	var iStepNormal     = 10;
+	var iSecondsInCompressedRange = 100;	// shortcut describing the number of seconds held by compressed part of the graph
 
 	var aPointsTemp = [];
 	var aPointsBaro = [];
@@ -32,12 +38,6 @@
 	var iStepH = (iRightAbs - iLeftAbs)/16;
 	var iStepV = (iBottomAbs - iTopAbs)/10;
 
-	var iTimeMSCompressedThreshold = 0;
-	var iStepCompressed = 10;
-	var iStepNormal     = 10;
-	var iSecondsInCompressedRange = 100;	// shortcut describing the number of seconds held by compressed part of the graph
-	
-	
 	// Initial values
 	var strPressureDim = "kPa";
 
@@ -238,7 +238,8 @@
 		
 		iTimeMSstart = Date.now();
 		iTimeMSCompressedThreshold = iTimeMSstart + 100*1000;
-		iTimeMSTotalThreshold = iTimeMSstart + 160*1000;
+		iTimeMSTotalThreshold      = iTimeMSstart + 160*1000;
+		iSecondsInCompressedRange  = 100;
 	}
 	
 	function StopAutoUpdate()
@@ -407,6 +408,8 @@
 	function DrawRangeMarks()
 	{
 		ctx.font = "bold 20px serif";
+		let fCurrent;
+		let fDelta;
 
 		if ($("idBARA").checked == true)
 		{
@@ -417,12 +420,12 @@
 				
 			//ctx.fillStyle = "black";
 			
-			let fCurrent = fTemperatureMin;
-			let fDelta  = (fTemperatureMax - fTemperatureMin)/10;
-			for (i=0; i<=10; i++)
+			fCurrent = fTemperatureMin;
+			fDelta  = (fTemperatureMax - fTemperatureMin)/10;
+			for (let i=0; i<=10; i++)
 			{
-					ctx.fillText(Number(fCurrent.toFixed(1)), 10, iBottomAbs - 5 - i*iStepV);
-					fCurrent = fCurrent + fDelta;
+				ctx.fillText(Number(fCurrent.toFixed(1)), 10, iBottomAbs - 5 - i*iStepV);
+				fCurrent = fCurrent + fDelta;
 			}
 			
 			// Pressure
@@ -439,10 +442,10 @@
 			
 			fCurrent = fPressureMin;
 			fDelta  = (fPressureMax - fPressureMin)/10;
-			for (i=0; i<=10; i++)
+			for (let i=0; i<=10; i++)
 			{
-					ctx.fillText(Number(fCurrent.toFixed(1)), 70, iBottomAbs - 5 - i*iStepV);
-					fCurrent = fCurrent + fDelta;
+				ctx.fillText(Number(fCurrent.toFixed(1)), 70, iBottomAbs - 5 - i*iStepV);
+				fCurrent = fCurrent + fDelta;
 			}
 		}
 		
@@ -458,10 +461,10 @@
 			
 			fCurrent = fFluxMin;
 			fDelta  = (fFluxMax - fFluxMin)/10;
-			for (i=0; i<=10; i++)
+			for (let i=0; i<=10; i++)
 			{
-					ctx.fillText(Number(fCurrent.toFixed(1)), c.width - 310, iBottomAbs - 5 - i*iStepV);
-					fCurrent = fCurrent + fDelta;
+				ctx.fillText(Number(fCurrent.toFixed(1)), c.width - 310, iBottomAbs - 5 - i*iStepV);
+				fCurrent = fCurrent + fDelta;
 			}
 			
 			// Thermocouple mV
@@ -473,10 +476,10 @@
 			
 			fCurrent = fThermocoupleMin;
 			fDelta  = (fThermocoupleMax - fThermocoupleMin)/10;
-			for (i=0; i<=10; i++)
+			for (let i=0; i<=10; i++)
 			{
-					ctx.fillText(Number(fCurrent.toFixed(1)), c.width - 220, iBottomAbs - 5 - i*iStepV);
-					fCurrent = fCurrent + fDelta;
+				ctx.fillText(Number(fCurrent.toFixed(1)), c.width - 220, iBottomAbs - 5 - i*iStepV);
+				fCurrent = fCurrent + fDelta;
 			}
 			
 			// Thermoresistor Ohm
@@ -488,10 +491,10 @@
 			
 			fCurrent = fThermistorRMin;
 			fDelta  = (fThermistorRMax - fThermistorRMin)/10;
-			for (i=0; i<=10; i++)
+			for (let i=0; i<=10; i++)
 			{
-					ctx.fillText(Number(fCurrent.toFixed(1)), c.width - 150, iBottomAbs - 5 - i*iStepV);
-					fCurrent = fCurrent + fDelta;
+				ctx.fillText(Number(fCurrent.toFixed(1)), c.width - 150, iBottomAbs - 5 - i*iStepV);
+				fCurrent = fCurrent + fDelta;
 			}
 			
 			// Thermistor voltage
@@ -503,10 +506,10 @@
 			
 			fCurrent = fThermistorVMin;
 			fDelta  = (fThermistorVMax - fThermistorVMin)/10;
-			for (i=0; i<=10; i++)
+			for (let i=0; i<=10; i++)
 			{
-					ctx.fillText(fCurrent.toFixed(2), c.width - 70, iBottomAbs - 5 - i*iStepV);
-					fCurrent = fCurrent + fDelta;
+				ctx.fillText(fCurrent.toFixed(2), c.width - 70, iBottomAbs - 5 - i*iStepV);
+				fCurrent = fCurrent + fDelta;
 			}
 		}
 	}
@@ -524,7 +527,7 @@
 		ctx.beginPath();
 
 		ctx.moveTo(iX, iY);
-		for (i=0; i < aPoints.length-1; i++)
+		for (let i=0; i < aPoints.length-1; i++)
 		{
 			if (aPoints[i].time < iTimeMSCompressedThreshold)
 			{
@@ -640,12 +643,14 @@
 		ctx.restore();
 		
 		 
+		let elColor;
+		
 		if ($("idBARA").checked == true)
 		{
 			// STEP: draw Temperature plot
 			if ($("idTemperature").checked == true)
 			{
-				let elColor = $("idTemperatureColor");
+				elColor = $("idTemperatureColor");
 				DrawCurve(aPointsTemp, fTemperatureMin, fTemperatureMax, elColor.value);
 			}
 			
