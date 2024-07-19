@@ -228,7 +228,9 @@ int CreateHTTPserver(MS5611* ms5611, ADS1256* ads1256)
                 }
                 else if(!strcmp(strHTTP_requestPath, "/FOAflux"))
                 {
-					float fValue = ads1256->GetFlux();
+					float fThCvoltage = 0.0f;
+					float fThR = 0.0f;
+					float fValue = ads1256->GetFlux(fThCvoltage, fThR);
 					
                     char strVoltage[20];
                     sprintf(strVoltage, "%f", fValue);

@@ -333,23 +333,24 @@ float ADS1256::GetThermistorResistance()
     
 	float fVoltage = GetThermistorVoltage();
 	
-	// REF_VOLTAGE = I*x + I*ETALON_RESISTANCE
-	// I*x = fVoltage
-	// REF_VOLTAGE = fVoltage + I*ETALON_RESISTANCE
-	// I = (REF_VOLTAGE - fVoltage) / ETALON_RESISTANCE
+	// (Uref - U)    Rref
+	// ----------- = ----   =>
+	//      U         Rx
 	
-	float fCurrent = (REF_VOLTAGE - fVoltage)/ETALON_RESISTANCE;
+	// Rx = (Rref * U) / (Uref - U)
 	
-	return fVoltage/fCurrent;
+	return fVoltage * ETALON_RESISTANCE / (REF_VOLTAGE - fVoltage);
 }
 
-float ADS1256::GetFlux()
+// Returns ThC and ThR values to sample once
+float ADS1256::GetFlux(float& fThCvoltage, float& fThR)
 {
     if (!bConnected) return 0.0f;
     
-	float fVoltage = 0;
+	fThCvoltage = GetThermocoupleVoltage();
+	fThR        = GetThermistorResistance();
 	
-	return fVoltage;
+	return (fThCvoltage / (1.0f + 0.0166f * (fThR - 177.0f))) / 3.11f;
 }
 
 // -8388608 to 8388607

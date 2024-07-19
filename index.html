@@ -17,10 +17,11 @@
 	input[type='color'] {
 		width: 30px;
 		height: 30px;
+		margin-left: 30px;
 	}
 	input[type='checkbox'] {
-		width: 18px;
-		height: 18px;
+		width: 16px;
+		height: 16px;
 	}
 	th, td {
 		border: 1px solid black;
@@ -43,41 +44,44 @@
 
 
 <table style="width:100%">
-  <tr valign="bottom">
+  <tr height="50px" valign="bottom">
     <td>
-		<b>&nbsp;&nbsp;BARA: MS5611</b>
+		<b>
+			<input type="checkbox" id="idBARA" name="idBARA" onclick="GroupVisibilityChanged()" checked style="width:20px;height:20px"/>
+			<label for="idBARA" id="idBARALabel">BARA: MS5611</label>
+		</b>
 	</td>
-    <td style="width:82%" rowspan="10" valign="top">
+    <td style="width:80%" rowspan="11" valign="top">
 		<canvas id="FrontCanvas" width="2090" height="980" style="border:2px solid #d3d3d3;">
 			Your browser does not support the HTML5 canvas tag.
 		</canvas>
 	</td>
   </tr>
-  <tr>
+  <tr height="80px" class="BARAclass">
 	  <td>
 		<div>
 			<input type="color" id="idTemperatureColor" name="idTemperatureColor" value="#ed333b"/>
 			&nbsp;&nbsp;
-			<input type="checkbox" id="idTemperature" name="idTemperature" checked />
+			<input type="checkbox" id="idTemperature" name="idTemperature" onclick="DrawPlot()" checked />
 			<label for="idTemperature" id="idTemperatureLabel">Temperature: unknown</label>
 			<br>
 			<br>
 			<div align="center">
 				min
-				<input type="text" id="idTemperatureMin" name="idTemperatureMin" onBlur="FocusLost()" style="width:40px; text-align:center"/>
+				<input type="text" id="idTemperatureMin" name="idTemperatureMin" onBlur="FocusLost()" onKeyup="Keyup(event)" style="width:40px; text-align:center"/>
 				°C &nbsp;&nbsp; max
-				<input type="text" id="idTemperatureMax" name="idTemperatureMax" onBlur="FocusLost()" style="width:40px; text-align:center"/>
+				<input type="text" id="idTemperatureMax" name="idTemperatureMax" onBlur="FocusLost()" onKeyup="Keyup(event)" style="width:40px; text-align:center"/>
 				°C
 			</div>
 		</div>
 	  </td>
   </tr>
-  <tr>
+  <tr height="80px" class="BARAclass">
 	  <td>
 		<div>
 			<input type="color" id="idPressureColor" name="idPressureColor" value="#1c71d8" />
 			&nbsp;&nbsp;
-			<input type="checkbox" id="idPressure" name="idPressure" checked />
+			<input type="checkbox" id="idPressure" name="idPressure" onclick="DrawPlot()" checked />
 			<label for="idPressure" id="idPressureLabel">Pressure: unknown</label>
 
 				<div style="float:right;line-height: 35px;">
@@ -91,113 +95,114 @@
 			<br>
 			<div align="center">
 				min
-				<input type="text" id="idPressureMin" name="idPressureMin" onBlur="FocusLost()" style="width:40px; text-align:center"/>
+				<input type="text" id="idPressureMin" name="idPressureMin" onBlur="FocusLost()" onKeyup="Keyup(event)" style="width:40px; text-align:center"/>
 				<span id="pressureDim1">kPa</span> &nbsp;&nbsp; max
-				<input type="text" id="idPressureMax" name="idPressureMax" onBlur="FocusLost()" style="width:40px; text-align:center"/>
+				<input type="text" id="idPressureMax" name="idPressureMax" onBlur="FocusLost()" onKeyup="Keyup(event)" style="width:40px; text-align:center"/>
 				<span id="pressureDim2">kPa</span>
 			</div>
 		</div>
 	  </td>
   </tr>
-  <tr height="20px">
+  <tr height="50px" valign="bottom">
 		<td>
+		<b>
+			<input type="checkbox" id="idFOA" name="idFOA" onclick="GroupVisibilityChanged()" checked style="width:20px;height:20px"/>
+			<label for="idFOA" id="idFOALabel">FOA: ADS1256</label>
+		</b>
 		</td>
   </tr>
-  <tr valign="bottom">
-		<td>
-			<b>&nbsp;&nbsp;FOA: ADS1256</b>
-		</td>
-  </tr>
-  <tr>
+  <tr height="80px" class="FOAclass">
 	  <td>
 		<div>
 			<input type="color" id="idThermocoupleColor" name="idThermocoupleColor" value="#865e3c" />
 			&nbsp;&nbsp;
-			<input type="checkbox" id="idThermocouple" name="idThermocouple" checked />
+			<input type="checkbox" id="idThermocouple" name="idThermocouple" onclick="DrawPlot()" checked />
 			<label for="idThermocouple" id="idThermocoupleLabel">ThermoCouple: unknown</label>
 			<br>
 			<br>
 			<div align="center">
 				min
-				<input type="text" id="idThermocoupleMin" name="idThermocoupleMin" onBlur="FocusLost()" style="width:40px; text-align:center"/>
+				<input type="text" id="idThermocoupleMin" name="idThermocoupleMin" onBlur="FocusLost()" onKeyup="Keyup(event)" style="width:40px; text-align:center"/>
 				mV &nbsp;&nbsp; max
-				<input type="text" id="idThermocoupleMax" name="idThermocoupleMax" onBlur="FocusLost()" style="width:40px; text-align:center"/>
+				<input type="text" id="idThermocoupleMax" name="idThermocoupleMax" onBlur="FocusLost()" onKeyup="Keyup(event)" style="width:40px; text-align:center"/>
 				mV
 			</div>
 		</div>
 	  </td>
   </tr>
-  <tr>
+  <tr height="80px" class="FOAclass">
 	  <td>
 		<div>
 			<input type="color" id="idThermistorVColor" name="idThermistorVColor" value="#000000" />
 			&nbsp;&nbsp;
-			<input type="checkbox" id="idThermistorV" name="idThermistorV" checked />
+			<input type="checkbox" id="idThermistorV" name="idThermistorV" onclick="DrawPlot()" checked />
 			<label for="idThermistorV" id="idThermistorVLabel">Thermistor V: unknown</label>
 			<br>
 			<br>
 			<div align="center">
 				min
-				<input type="text" id="idThermistorVMin" name="idThermistorVMin" onBlur="FocusLost()" style="width:40px; text-align:center"/>
+				<input type="text" id="idThermistorVMin" name="idThermistorVMin" onBlur="FocusLost()" onKeyup="Keyup(event)" style="width:40px; text-align:center"/>
 				V &nbsp;&nbsp; max
-				<input type="text" id="idThermistorVMax" name="idThermistorVMax" onBlur="FocusLost()" style="width:40px; text-align:center"/>
+				<input type="text" id="idThermistorVMax" name="idThermistorVMax" onBlur="FocusLost()" onKeyup="Keyup(event)" style="width:40px; text-align:center"/>
 				V
 			</div>
 		</div>
 	  </td>
   </tr>
-  <tr>
+  <tr height="80px" class="FOAclass">
 	  <td>
 		<div>
 			<input type="color" id="idThermistorRColor" name="idThermistorRColor" value="#26a269" />
 			&nbsp;&nbsp;
-			<input type="checkbox" id="idThermistorR" name="idThermistorR" checked />
+			<input type="checkbox" id="idThermistorR" name="idThermistorR" onclick="DrawPlot()" checked />
 			<label for="idThermistorR" id="idThermistorRLabel">Thermistor R: unknown</label>
 			<br>
 			<br>
 			<div align="center">
 				min
-				<input type="text" id="idThermistorRMin" name="idThermistorRMin" onBlur="FocusLost()" style="width:40px; text-align:center"/>
+				<input type="text" id="idThermistorRMin" name="idThermistorRMin" onBlur="FocusLost()" onKeyup="Keyup(event)" style="width:40px; text-align:center"/>
 				Ω &nbsp;&nbsp; max
-				<input type="text" id="idThermistorRMax" name="idThermistorRMax" onBlur="FocusLost()" style="width:40px; text-align:center"/>
+				<input type="text" id="idThermistorRMax" name="idThermistorRMax" onBlur="FocusLost()" onKeyup="Keyup(event)" style="width:40px; text-align:center"/>
 				Ω
 			</div>
 		</div>
 	  </td>
   </tr>
-  <tr>
+  <tr height="80px" class="FOAclass">
 	  <td>
 		<div>
-			<input type="color" id="idSolarEnergyColor" name="idSolarEnergyColor" value="#d39600" />
+			<input type="color" id="idFluxColor" name="idFluxColor" value="#d39600" />
 			&nbsp;&nbsp;
-			<input type="checkbox" id="idSolarEnergy" name="idSolarEnergy" checked />
-			<label for="idSolarEnergy" id="idSolarEnergyLabel">Flux: unknown</label>
+			<input type="checkbox" id="idFlux" name="idFlux" onclick="DrawPlot()" checked />
+			<label for="idFlux" id="idFluxLabel">Flux: unknown</label>
 			<br>
 			<br>
 			<div align="center">
 				min
-				<input type="text" id="idSolarEnergyMin" name="idSolarEnergyMin" onBlur="FocusLost()" style="width:40px; text-align:center"/>
+				<input type="text" id="idFluxMin" name="idFluxMin" onBlur="FocusLost()" onKeyup="Keyup(event)" style="width:40px; text-align:center"/>
 				W/m² &nbsp;&nbsp; max
-				<input type="text" id="idSolarEnergyMax" name="idSolarEnergyMax" onBlur="FocusLost()" style="width:40px; text-align:center"/>
+				<input type="text" id="idFluxMax" name="idFluxMax" onBlur="FocusLost()" onKeyup="Keyup(event)" style="width:40px; text-align:center"/>
 				W/m²
 			</div>
 		</div>	
 	  </td>
   </tr>
   <tr>
+		<td>
+		</td>
+  </tr>
+  <tr height="50px">
 	  <td align="center">
 		<div style="display:table-cell; vertical-align:middle">
-			<button type="button" class="REST" onclick="DrawPlot()" style="width: 140px; height:26px; font-size: 14px;">Apply</button>
-			<br><br>
 			<button type="button" class="REST" onclick="SaveConfiguration()" style="width: 140px; height:26px; font-size: 14px;">Save configuration</button>
-			<button type="button" class="REST" onclick="FetchConfiguration()"  style="width: 140px; height:26px; font-size: 14px;">Load configuation</button>
+			<button type="button" class="REST" onclick="FetchConfiguration()"  style="margin-left: 20px; width: 140px; height:26px; font-size: 14px;">Load configuation</button>
 		</div>
 	  </td>
   </tr>
-  <tr>
-	  <td style="height:90px" align="center" valign="middle">
-		<button type="button" class="REST" onclick="StartAutoUpdate()" style="width: 140px; height:26px; font-size: 14px;">Start monitoring</button>
-		<button type="button" class="REST" onclick="StopAutoUpdate()"  style="width: 140px; height:26px; font-size: 14px;">Stop monitoring</button>
+  <tr height="50px">
+	  <td align="center" valign="middle">
+		<button type="button" class="REST" onclick="StartAutoUpdate()" style="width: 140px; height:26px; font-size: 14px; ">Start monitoring</button>
+		<button type="button" class="REST" onclick="StopAutoUpdate()"  style="margin-left: 20px; width: 140px; height:26px; font-size: 14px;">Stop monitoring</button>
 		<br>
 	  </td>
   </tr>
@@ -206,6 +211,13 @@
 
 <script type="text/javascript" src="script.js"> </script>
 <script type="text/javascript" src="scriptSerialization.js"> </script>
+
+<script>
+	function Keyup(event)
+	{
+		if (event.which == 13) event.target.blur();
+	}
+</script>
 
 
 </body></html>

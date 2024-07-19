@@ -32,36 +32,42 @@
 										{
 											"Temperature":
 											{
-												"TemperatureMin"    : fTemperatureMin,
-												"TemperatureMax"    : fTemperatureMax
+												"Min"    : fTemperatureMin,
+												"Max"    : fTemperatureMax,
+												"Color"  : $("idTemperatureColor").value,
 											},
 											"Pressure":
 											{
-												"PressureMin"       : fPressureMin,
-												"PressureMax"       : fPressureMax
+												"Min"    : fPressureMin,
+												"Max"    : fPressureMax,
+												"Color"  : $("idPressureColor").value,
 											}
 										},
 										"ADS1256":
 										{
 											"Thermocouple":
 											{
-												"ThermocoupleMin"   : fThermocoupleMin,
-												"ThermocoupleMax"   : fThermocoupleMax
+												"Min"    : fThermocoupleMin,
+												"Max"    : fThermocoupleMax,
+												"Color"  : $("idThermocoupleColor").value,
 											},
 											"ThermistorV":
 											{
-												"ThermistorVMin"    : fThermistorVMin,
-												"ThermistorVMax"    : fThermistorVMax
+												"Min"    : fThermistorVMin,
+												"Max"    : fThermistorVMax,
+												"Color"  : $("idThermistorVColor").value,
 											},
 											"ThermistorR":
 											{
-												"ThermistorRMin"    : fThermistorRMin,
-												"ThermistorRMax"    : fThermistorRMax
+												"Min"    : fThermistorRMin,
+												"Max"    : fThermistorRMax,
+												"Color"  : $("idThermistorRColor").value,
 											},
 											"Flux":
 											{
-												"FluxMin"           : fSolarEnergyMin,
-												"FluxMax"           : fSolarEnergyMax
+												"Min"    : fFluxMin,
+												"Max"    : fFluxMax,
+												"Color"  : $("idFluxColor").value
 											}
 										}
 									})
@@ -101,8 +107,8 @@
 			fThermistorRMin = obj["ADS1256"].ThermistorR.ThermistorRMin;
 			fThermistorRMax = obj["ADS1256"].ThermistorR.ThermistorRMax;
 										
-			fSolarEnergyMin = obj["ADS1256"].Flux.FluxMin;
-			fSolarEnergyMax = obj["ADS1256"].Flux.FluxMax;
+			fFluxMin = obj["ADS1256"].Flux.FluxMin;
+			fFluxMax = obj["ADS1256"].Flux.FluxMax;
 			
 			InitGUIparamsFromCodeValues();
 
