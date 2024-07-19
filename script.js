@@ -38,8 +38,8 @@
 	var iStepH = (iRightAbs - iLeftAbs)/16;
 	var iStepV = (iBottomAbs - iTopAbs)/10;
 
-	// Initial values
-	var strPressureDim = "kPa";
+	// Initial values (values in GUI may be unfinished or cached, here we store operational values)
+	var strPressureDim   = "kPa";
 
 	var fTemperatureMin  = -30;
 	var fTemperatureMax  = 70;
@@ -62,9 +62,9 @@
 	
 	function PressureDimensionChanged(object)
 	{
-		var Selection = object.value;
+		strPressureDim = object.value;
 		
-		if (Selection == "mBar")
+		if (strPressureDim == "mBar")
 		{
 			let fVal;
 			fVal = $("idPressureMin").value;
@@ -101,6 +101,9 @@
 	function OnInit()
 	{
 		InitGUIparamsFromCodeValues();
+		
+		// handle case when page remembers checkbox selection after refresh
+		GroupVisibilityChanged();
 
 		idIntervalPing = setInterval(PingHTTPserver, 1000);
 	}
@@ -221,8 +224,15 @@
 			return;
 		}
 
-		if ((aPointsTemp.length && aPointsThermocouple.length) &&
+		if ((aPointsTemp.length || aPointsThermocouple.length) &&
 		    (confirm("Previous data will be lost. Continue?") == false)) return;
+		    
+		if ( ($("idBARA").checked == false) && ($("idFOA").checked == false) )
+		{
+			alert("No groups selected for monitoring");
+			return;
+		}
+
 		    
 		$("idBARA").disabled = true;
 		$("idFOA").disabled = true;
@@ -254,157 +264,7 @@
 		}
 	}
 	
-	async function fetchDataAsync()
-	{
-		let fTemperature;
-		let fPressure;
-		let fThCvoltage;
-		let fThermVoltage;
-		let fThermResistance;
-		let fFlux;
 
-		try
-		{
-			const response = await fetch('http://localhost:8081/BARAtemperature');
-			const summary  = await response.text();
-			console.log(summary);
-			
-			fTemperature = parseFloat(summary);
-			
-			const changeText = document.querySelector("#idTemperatureLabel");
-
-			changeText.innerHTML = "Temperature: " + fTemperature.toFixed(2) + " °C";
-			
-			let point = {};
-			point.value = fTemperature;
-			point.time  = Date.now();
-			
-			aPointsTemp.push(point);
-		}
-		catch (error)
-		{
-			console.log('Error:' + error.message);
-		}
-		try
-		{
-			const response = await fetch('http://localhost:8081/BARApressure');
-			const summary  = await response.text();
-			console.log(summary);
-			
-			fPressure = parseFloat(summary);
-			
-			const changeText = document.querySelector("#idPressureLabel");
-			
-			let Selection = $("idPressureDimSelector").value;
-		
-			if (Selection == "kPa")
-				changeText.textContent = "Pressure: " + (fPressure*0.1).toFixed(2) + " kPa";
-			else
-				changeText.textContent = "Pressure: " + fPressure.toFixed(1) + " mBar";
-
-
-			let point = {};
-			point.value = fPressure;
-			point.time  = Date.now();
-			
-			aPointsBaro.push(point);
-		}
-		catch (error)
-		{
-			console.log('Error:' + error.message);
-		}
-		try
-		{
-			const response = await fetch('http://localhost:8081/FOAthermocouple');
-			const summary  = await response.text();
-			console.log(summary);
-			
-			fThCvoltage = parseFloat(summary);
-			
-			const changeText = document.querySelector("#idThermocoupleLabel");
-			
-			let fValMV = fThCvoltage*1000;
-
-			changeText.textContent = "Thermocouple: " + fValMV.toFixed(3) + " mV";
-
-			let point = {};
-			point.value = fValMV;
-			point.time  = Date.now();
-			
-			aPointsThermocouple.push(point);
-		}
-		catch (error)
-		{
-			console.log('Error:' + error.message);
-		}
-		try
-		{
-			const response = await fetch('http://localhost:8081/FOAthermistorV');
-			const summary  = await response.text();
-			console.log(summary);
-			
-			fThermVoltage = parseFloat(summary);
-			
-			const changeText = document.querySelector("#idThermistorVLabel");
-
-			changeText.textContent = "Thermistor V: " + summary + " v";
-			
-			let point = {};
-			point.value = fThermVoltage;
-			point.time  = Date.now();
-			
-			aPointsThermistorV.push(point);
-		}
-		catch (error)
-		{
-			console.log('Error:' + error.message);
-		}
-		try
-		{
-			const response = await fetch('http://localhost:8081/FOAthermistorR');
-			const summary  = await response.text();
-			console.log(summary);
-			
-			fThermResistance = parseFloat(summary);
-			
-			const changeText = document.querySelector("#idThermistorRLabel");
-
-			changeText.textContent = "Thermistor R: " + fThermResistance.toFixed(2) + " Ω";
-			
-			let point = {};
-			point.value = fThermResistance;
-			point.time  = Date.now();
-			
-			aPointsThermistorR.push(point);
-		}
-		catch (error)
-		{
-			console.log('Error:' + error.message);
-		}
-		try
-		{
-			fFlux  = (fThCvoltage / (1.0 + 0.0166 * (fThermResistance - 177.0))) / 3.11;
-			console.log(fFlux);
-			
-			const changeText = document.querySelector("#idFluxLabel");
-
-			changeText.textContent = "Flux: " + fFlux.toFixed(2) + " W/m²";
-			
-			let point = {};
-			point.value = fFlux;
-			point.time  = Date.now();
-			
-			aPointsFlux.push(point);
-		}
-		catch (error)
-		{
-			console.log('Error:' + error.message);
-		}
-		
-		DrawPlot();
-	}
-	
-	
 	function DrawRangeMarks()
 	{
 		ctx.font = "bold 20px serif";
@@ -429,10 +289,9 @@
 			}
 			
 			// Pressure
-			let Selection = $("idPressureDimSelector").value;
 			
 			ctx.fillStyle = $("idPressureColor").value;
-			if (Selection == "kPa")
+			if (strPressureDim == "kPa")
 				ctx.fillText("kPa", 70, c.height-45);
 			else
 				ctx.fillText("mBar", 70, c.height-45);
@@ -657,10 +516,8 @@
 			// STEP: draw Pressure plot
 			if ($("idPressure").checked == true)
 			{
-				let Selection = $("idPressureDimSelector").value;
-			
 				let fScaler = 1;
-				if (Selection == "kPa")
+				if (strPressureDim == "kPa")
 					fScaler = 10;
 			
 				elColor = $("idPressureColor");
