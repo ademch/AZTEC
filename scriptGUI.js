@@ -12,12 +12,12 @@
 	var iTimeMSstart = Date.now();
 	var iMScurrent   = 0;
 
-	var iTimeMSCompressedThreshold = 0;
-	var iTimeMSTotalThreshold = 0;
-	var iStepCompressed = 10;
-	var iStepNormal     = 10;
-	var iSecondsInCompressedRange = 100;	// shortcut describing the number of seconds held by compressed part of the graph
+	var iTimeMSCompressedThreshold;		// range where iStepCompressed is applied during rendering
+	var iTimeMSTotalThreshold;			// after exeeding the threshold the values bacome packed into copression range
+	var iStepCompressed, iStepNormal;
+	var iSecondsInCompressedRange;		// shortcut describing the number of seconds held by compressed part of the graph
 
+	// arrays of sampled channels
 	var aPointsTemp = [];
 	var aPointsBaro = [];
 	var aPointsThermocouple = [];
@@ -25,20 +25,15 @@
 	var aPointsThermistorR = [];
 	var aPointsFlux = [];
 	
-	var iLeftMargin   = 150;
-	var iRightMargin  = 340;
-	var iTopMargin    = 50;
-	var iBottomMargin = 110;
+	var iLeftMargin, iRightMargin;
+	var iTopMargin,  iBottomMargin;
 	
-	var iLeftAbs   = iLeftMargin;
-	var iRightAbs  = c.width-iRightMargin;
-	var iTopAbs    = iTopMargin;
-	var iBottomAbs = c.height-iBottomMargin;
+	var iLeftAbs, iRightAbs;
+	var iTopAbs,  iBottomAbs;
 	
-	var iStepH = (iRightAbs - iLeftAbs)/16;
-	var iStepV = (iBottomAbs - iTopAbs)/10;
+	var iStepH, iStepV;
 
-	// Initial values (values in GUI may be unfinished or cached, here we store operational values)
+	// Initial values (values in GUI may be unfinished or cached by browser, here we store operational values)
 	var strPressureDim   = "kPa";
 
 	var fTemperatureMin  = -30;
@@ -60,6 +55,7 @@
 	var fFluxMax         = 3000;
 	
 	
+	// GUI callback triggered on pressure dimension change
 	function PressureDimensionChanged(object)
 	{
 		strPressureDim = object.value;
@@ -98,19 +94,20 @@
 		DrawPlot();
 	}
 	
+	// On page load callback
 	function OnInit()
 	{
-		InitGUIparamsFromCodeValues();
+		InitGUIparamsFromData();
 		
-		// handle case when page remembers checkbox selection after refresh
-		GroupVisibilityChanged();
+		// handles the case when page remembers checkbox selection after refresh
+		CalcGUIcoefficients();
 
 		idIntervalPing = setInterval(PingHTTPserver, 1000);
 	}
 
 
 	// GUI init
-	function InitGUIparamsFromCodeValues()
+	function InitGUIparamsFromData()
 	{
 		$("idPressureDimSelector").value = strPressureDim;
 
@@ -159,67 +156,53 @@
 		DrawPlot();
 	}
 	
-	function GroupVisibilityChanged()
+	function CalcGUIcoefficients()
 	{
-		iLeftMargin   = 150;
-		iRightMargin  = 340;
-		iTopMargin    = 50;
-		iBottomMargin = 110;
+		let x;
 		
+		x = document.getElementsByClassName("BARAclass");
 		if ($("idBARA").checked == false)
 		{
-			iLeftMargin = 50;
-			
-			let x = document.getElementsByClassName("BARAclass");
-			for (let i = 0; i < x.length; i++) {
+			for (let i = 0; i < x.length; i++)
 				x[i].style.display = "none";
-			}
 		}
-		else
-		{
-			let x = document.getElementsByClassName("BARAclass");
-			for (let i = 0; i < x.length; i++) {
+		else {
+			for (let i = 0; i < x.length; i++)
 				x[i].style.display = "table-row";
-			}
 		}
 
+		x = document.getElementsByClassName("FOAclass");
 		if ($("idFOA").checked == false)
 		{
-			iRightMargin  = 40;
-			
-			let x = document.getElementsByClassName("FOAclass");
-			for (let i = 0; i < x.length; i++) {
+			for (let i = 0; i < x.length; i++)
 				x[i].style.display = "none";
-			}
 
 		}
-		else
-		{
-			let x = document.getElementsByClassName("FOAclass");
-			for (let i = 0; i < x.length; i++) {
+		else {
+			for (let i = 0; i < x.length; i++)
 				x[i].style.display = "table-row";
-			}
 		}
+
+		iLeftMargin   = ($("idBARA").checked == true) ? 150 : 50;
+		iRightMargin  = ($("idFOA").checked  == true) ? 340 : 40;
+		iTopMargin    = 50;
+		iBottomMargin = 110;
 
 		iLeftAbs   = iLeftMargin;
 		iRightAbs  = c.width-iRightMargin;
 		iTopAbs    = iTopMargin;
 		iBottomAbs = c.height-iBottomMargin;
 		
-		iStepH = (iRightAbs - iLeftAbs)/16;
+		iStepH = (iRightAbs - iLeftAbs)/16;		// compression range of 10 + 6 subintervals
 		iStepV = (iBottomAbs - iTopAbs)/10;
-		
-		iStepNormal     = iStepH/10;
-		iStepCompressed = (iStepH*10)/iSecondsInCompressedRange;
-		
+
 		DrawPlot();
 	}
 	
 
 	function StartAutoUpdate()
 	{
-		if (idInterval != -1)
-		{
+		if (idInterval != -1) {
 			alert("Monitoring is already in progress");
 			return;
 		}
@@ -227,15 +210,14 @@
 		if ((aPointsTemp.length || aPointsThermocouple.length) &&
 		    (confirm("Previous data will be lost. Continue?") == false)) return;
 		    
-		if ( ($("idBARA").checked == false) && ($("idFOA").checked == false) )
-		{
+		if ( ($("idBARA").checked == false) && ($("idFOA").checked == false) ) {
 			alert("No groups selected for monitoring");
 			return;
 		}
-
 		    
+		// prevent "group" collapse/expand during monitoring as selection effects sampled channels
 		$("idBARA").disabled = true;
-		$("idFOA").disabled = true;
+		$("idFOA").disabled  = true;
 		    
 		aPointsTemp = [];
 		aPointsBaro = [];
@@ -246,7 +228,7 @@
 		
 		idInterval = setInterval(fetchDataAsync, 1000);
 		
-		iTimeMSstart = Date.now();
+		iTimeMSstart               = Date.now();
 		iTimeMSCompressedThreshold = iTimeMSstart + 100*1000;
 		iTimeMSTotalThreshold      = iTimeMSstart + 160*1000;
 		iSecondsInCompressedRange  = 100;
@@ -289,7 +271,6 @@
 			}
 			
 			// Pressure
-			
 			ctx.fillStyle = $("idPressureColor").value;
 			if (strPressureDim == "kPa")
 				ctx.fillText("kPa", 70, c.height-45);
@@ -378,10 +359,16 @@
 		if (aPoints.length < 1) return;
 		
 		let fPxPerUnitY = (c.height - iTopMargin - iBottomMargin)/(fValMax - fValMin);
+		
+		// nice touch
+		if (!isFinite(fPxPerUnitY)) return;
 
 		let iX = iLeftAbs;
-		let iY = iBottomAbs - (aPoints[0].value - fValMin) * fPxPerUnitY;
+		let iY = iBottomAbs - fPxPerUnitY * (aPoints[0].value - fValMin);
 		
+		iStepNormal     =  iStepH/10;
+		iStepCompressed = (iStepH*10)/iSecondsInCompressedRange;
+
 		ctx.lineWidth = 3;
 		ctx.beginPath();
 
@@ -390,8 +377,9 @@
 		{
 			if (aPoints[i].time < iTimeMSCompressedThreshold)
 			{
-				iX = iLeftAbs+ iStepCompressed*(aPoints[i].time - iTimeMSstart)/1000;
-				iY = iBottomAbs - (aPoints[i].value - fValMin) * fPxPerUnitY;
+				iX = iLeftAbs   + iStepCompressed*(aPoints[i].time - iTimeMSstart)/1000;
+				iY = iBottomAbs - fPxPerUnitY*    (aPoints[i].value - fValMin);
+				
 				ctx.lineTo(iX, iY);
 			}
 			else // uncompressed
@@ -407,8 +395,9 @@
 				}
 				else
 				{
-					iX = iLeftAbs + iStepH*10 + iStepNormal*(aPoints[i].time - iTimeMSCompressedThreshold)/1000;
-					iY = iBottomAbs - (aPoints[i].value - fValMin) * fPxPerUnitY;
+					iX = iLeftAbs   + iStepH*10 + iStepNormal*(aPoints[i].time - iTimeMSCompressedThreshold)/1000;
+					iY = iBottomAbs -             fPxPerUnitY*(aPoints[i].value - fValMin);
+					
 					ctx.lineTo(iX, iY);
 				}
 			}
@@ -555,5 +544,4 @@
 				DrawCurve(aPointsFlux, fFluxMin, fFluxMax, elColor.value);
 			}
 		}
-		
 	}

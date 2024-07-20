@@ -115,9 +115,9 @@
 				fFluxMax                      = obj["ADS1256"].Flux.Max;
 				$("idFluxColor").value        = obj["ADS1256"].Flux.Color;
 			
-			InitGUIparamsFromCodeValues();
+			InitGUIparamsFromData();
 			
-			GroupVisibilityChanged();
+			CalcGUIcoefficients();
 
 		}
 		catch (error)

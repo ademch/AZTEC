@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 			
 	// Calibration values acquired from physical calibration
 	ads1256.WriteOffsetCalibration(-803);
-	ads1256.WriteScalingCalibration(3855000);	 // vs 3863056 factory
+	ads1256.WriteScalingCalibration(3843750);	 // vs 3863056 factory // FLuke 3855000
 			
 	int iOffsetCoef = ads1256.ReadOffsetCalibration();
 	printf("Calibration offset coefficient: %d\n", iOffsetCoef);

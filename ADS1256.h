@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#define REF_VOLTAGE       2.983f
-#define ETALON_RESISTANCE 182.3f
+#define REF_VOLTAGE         2.983f
+#define ETALON_RESISTANCE 181.875f
 
 // channel gain
 typedef enum

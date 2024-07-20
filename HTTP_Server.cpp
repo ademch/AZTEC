@@ -281,10 +281,8 @@ int CreateHTTPserver(MS5611* ms5611, ADS1256* ads1256)
 
                     sendGETresponse(clientSocket, strFilePath, strResponse);
                 }
-                else
+                else  // unknown mime type
                 {
-                    //unknown mime type
-                    
                     sprintf(strFilePath, ".%s", strHTTP_requestPath);
                     sprintf(strResponse, "%s%s", HTTP_200HEADER, "Content-Type: text/plain\r\n");
 
@@ -333,16 +331,15 @@ int CreateHTTPserver(MS5611* ms5611, ADS1256* ads1256)
 //https://linux.die.net/man/2/fstat
 //http://man7.org/linux/man-pages/man2/stat.2.html
 //http://man7.org/linux/man-pages/man2/sendfile.2.html
-void sendGETresponse(int fd, char strFilePath[], char strResponse[])
+void sendGETresponse(int fdSocket, char strFilePath[], char strResponse[])
 {
     int fdFile = open(strFilePath, O_RDONLY);
     if (fdFile < 0)
     {
 		sprintf(strResponse, "%s", HTTP_404HEADER);
-		write(fd, strResponse, strlen(strResponse));
+		write(fdSocket, strResponse, strlen(strResponse));
 		
         printf("\nCannot open file path : %s with error %d\n", strFilePath, fdFile);
-        perror("");
         printf("Response:\n%s\n", strResponse); 
         
         return;
@@ -360,13 +357,23 @@ void sendGETresponse(int fd, char strFilePath[], char strResponse[])
 	char* strOffset = strResponse + strlen(strResponse);
 	sprintf(strOffset, "Content-Length: %d\r\n\r\n", img_total_size);
 
-    write(fd, strResponse, strlen(strResponse));
     printf("\nResponse:\n%s\n", strResponse); 
-
+    int iRes = write(fdSocket, strResponse, strlen(strResponse));
+    if (iRes < 0)
+    {
+        printf("\nCannot write to client socket with error %d\n", iRes);
+        return;
+	}
+		
 	while(img_total_size > 0)
 	{
 		int iToSend = ((img_total_size < block_size) ? img_total_size : block_size);
-		int done_bytes = sendfile(fd, fdFile, NULL, iToSend);
+		int done_bytes = sendfile(fdSocket, fdFile, NULL, iToSend);
+		if (done_bytes < 0)
+		{
+			printf("\nCannot write to client socket with error %d\n", done_bytes);
+			return;
+		}
 		  
 		img_total_size = img_total_size - done_bytes;
 	}
@@ -374,16 +381,15 @@ void sendGETresponse(int fd, char strFilePath[], char strResponse[])
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/HEAD
-void sendHEADresponse(int fd, char strFilePath[], char strResponse[])
+void sendHEADresponse(int fdSocket, char strFilePath[], char strResponse[])
 {
     int fdFile = open(strFilePath, O_RDONLY);
     if (fdFile < 0)
     {
 		sprintf(strResponse, "%s", HTTP_404HEADER);
-		write(fd, strResponse, strlen(strResponse));
+		write(fdSocket, strResponse, strlen(strResponse));
 		
         printf("\nCannot open file path : %s with error %d\n", strFilePath, fdFile);
-        perror("");
         printf("Response:\n%s\n", strResponse); 
         
         return;
@@ -400,20 +406,25 @@ void sendHEADresponse(int fd, char strFilePath[], char strResponse[])
 	char* strOffset = strResponse + strlen(strResponse);
 	sprintf(strOffset, "Content-Length: %d\r\n\r\n", img_total_size);
 
-    write(fd, strResponse, strlen(strResponse));
-    printf("\nResponse:\n%s\n", strResponse); 
+    printf("\nResponse:\n%s\n", strResponse);
+    int iRes = write(fdSocket, strResponse, strlen(strResponse));
+    if (iRes < 0)
+    {
+        printf("\nCannot write to client socket with error %d\n", iRes);
+        return;
+	}
 
 	close(fdFile);
 }
 
 
-void sendPUTresponse(int fd, char strFilePath[], char strBody[], char strResponse[])
+void sendPUTresponse(int fdSocket, char strFilePath[], char strBody[], char strResponse[])
 {
 	int fdFile = open(strFilePath, O_WRONLY|O_CREAT|O_TRUNC, 0666);
     if (fdFile < 0)
     {
 		sprintf(strResponse, "%s", HTTP_400HEADER);
-		write(fd, strResponse, strlen(strResponse));
+		write(fdSocket, strResponse, strlen(strResponse));
 		
         printf("\nCannot save file path : %s with error %d\n", strFilePath, fdFile);
         printf("Response:\n%s\n", strResponse); 
@@ -421,10 +432,21 @@ void sendPUTresponse(int fd, char strFilePath[], char strBody[], char strRespons
         return;
     }
     
-    write(fd, strResponse, strlen(strResponse));
     printf("\nResponse:\n%s\n", strResponse); 
+    int iRes = write(fdSocket, strResponse, strlen(strResponse));
+    if (iRes < 0)
+    {
+        printf("\nCannot write to client socket with error %d\n", iRes);
+        return;
+	}
     
-    write(fdFile, strBody, strlen(strBody));
+    iRes = write(fdFile, strBody, strlen(strBody));
+    if (iRes < 0)
+    {
+        printf("\nCannot write to file %s with error %d\n", strFilePath, fdFile);
+        
+        return;
+    }
     
     close(fdFile);
 }
