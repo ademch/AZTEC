@@ -10,12 +10,10 @@
 	var idIntervalPing   = -1;	// ping interval identifier
 	
 	var iTimeMSstart = Date.now();
-	var iMScurrent   = 0;
-
-	var iTimeMSCompressedThreshold;		// range where iStepCompressed is applied during rendering
-	var iTimeMSTotalThreshold;			// after exeeding the threshold the values bacome packed into copression range
+	var iSecondsInCompressedRange = 100;	// shortcut describing the number of seconds held by compressed part of the graph
+	var iTimeMSCompressedThreshold;			// range where iStepCompressed is applied during rendering
+	var iTimeMSTotalThreshold;				// after exeeding the threshold the values bacome packed into copression range
 	var iStepCompressed, iStepNormal;
-	var iSecondsInCompressedRange;		// shortcut describing the number of seconds held by compressed part of the graph
 
 	// arrays of sampled channels
 	var aPointsTemp = [];
@@ -324,7 +322,7 @@
 			
 			// Thermoresistor Ohm
 			ctx.fillStyle = $("idThermistorRColor").value;
-			ctx.fillText("Ω", c.width - 150, c.height-45);
+			ctx.fillText("Ω",   c.width - 150, c.height-45);
 			ctx.fillText("ThR", c.width - 150, c.height-15);
 			
 			//ctx.fillStyle = "black";
@@ -339,7 +337,7 @@
 			
 			// Thermistor voltage
 			ctx.fillStyle = $("idThermistorVColor").value;
-			ctx.fillText("V", c.width - 70, c.height-45);
+			ctx.fillText("V",   c.width - 70, c.height-45);
 			ctx.fillText("ThV", c.width - 70, c.height-15);
 			
 			//ctx.fillStyle = "black";
