@@ -62,9 +62,9 @@
 				fPressure = parseFloat(summary);
 				
 				if (strPressureDim == "kPa")
-					$("idPressureLabel").textContent = "Pressure: " + (fPressure*0.1).toFixed(2) + " kPa";
+					$("idPressureLabel").textContent = "Pressure: " + (fPressure*0.1).toFixed(3) + " kPa";
 				else
-					$("idPressureLabel").textContent = "Pressure: " + fPressure.toFixed(1) + " mBar";
+					$("idPressureLabel").textContent = "Pressure: " + fPressure.toFixed(2) + " mBar";
 
 				let point = {};
 				point.value = fPressure;

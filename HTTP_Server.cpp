@@ -274,6 +274,13 @@ int CreateHTTPserver(MS5611* ms5611, ADS1256* ads1256)
 
                     sendGETresponse(clientSocket, strFilePath, strResponse);
                 }
+                else if (!strcmp(strHTTPreqExt, "png"))
+                {
+                    sprintf(strFilePath, ".%s", strHTTP_requestPath);
+                    sprintf(strResponse, "%s%s", HTTP_200HEADER, "Content-Type: image/png\r\nCache-Control: max-age=3600\r\n");
+
+                    sendGETresponse(clientSocket, strFilePath, strResponse);
+                }
                 else if (!strcmp(strHTTPreqExt, "css"))
                 {
                     sprintf(strFilePath, ".%s", strHTTP_requestPath);
@@ -302,14 +309,6 @@ int CreateHTTPserver(MS5611* ms5611, ADS1256* ads1256)
 					
                     sendPUTresponse(clientSocket, strFilePath, ptrBuffer, strResponse);
 				}
-                //~ char *find_string = (char *)malloc(200);
-                //~ find_string = find_token(buffer, "\r\n", "action");
-                //~ strcat(copy_head, "Content-Type: text/plain \r\n\r\n"); //\r\n\r\n
-                //~ //strcat(copy_head, "Content-Length: 12 \n");
-                //~ strcat(copy_head, "User Action: ");
-                //~ printf("find string: %s \n", find_string);
-                //~ strcat(copy_head, find_string);
-                //~ write(clientSocket, copy_head, strlen(copy_head));
             }
             close(clientSocket);
         }
@@ -534,32 +533,6 @@ void setHttpHeader_other(char httpHeader[], char *path)
 }
 */
 
-/*
-std::string read_image(const std::string& image_path){
-    std::ifstream is(image_path.c_str(), std::ifstream::in);
-    is.seekg(0, is.end);
-    int flength = is.tellg();
-    is.seekg(0, is.beg);
-    char * buffer = new char[flength];
-    is.read(buffer, flength);
-    std::string image(buffer, flength);
-    return image;
-}
-
-int send_image(int & fd, std::string& image){
-
-    int body_length = image.size();
-    const char * body = image.data();
-    int response_length = body_length;
-    char * buffer = new char[response_length];
-    memcpy(buffer, body, body_length);
-
-    int ret = write(fd, buffer, response_length);
-
-    delete [] buffer;
-    return ret;
-}
-*/
 
 
 
