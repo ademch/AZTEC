@@ -14,14 +14,6 @@
 #include "HTTP_Server.h"
 
 
-//#include <fstream>
-//#include <sstream>
-//#include <arpa/inet.h>
-//#include <string>
-//#include <netdb.h>
-//#include <unistd.h>
-//using namespace std;
-
 #define PORT 8081
 
 
@@ -31,15 +23,14 @@ void sendHEADresponse(int fd, char strFilePath[], char strResponse[]);
 //void report(struct sockaddr_in *serverAddress);
 
 //https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
-//https://stackoverflow.com/questions/45670369/c-web-server-image-not-showing-up-on-browser
 //https://www.linuxhowtos.org/C_C++/socket.htm
 
-char HTTP_200HEADER[] = "HTTP/1.1 200 Ok\r\n";
-char HTTP_201HEADER[] = "HTTP/1.1 201 CREATED\r\n";
-char HTTP_404HEADER[] = "HTTP/1.1 404 Not Found\r\n";
-char HTTP_400HEADER[] = "HTTP/1.1 400 Bad request\r\n";
+char HTTP_200HEADER[] = "HTTP/1.1 200 Ok\r\nConnection: close\r\n";
+char HTTP_201HEADER[] = "HTTP/1.1 201 CREATED\r\nConnection: close\r\n";
+char HTTP_404HEADER[] = "HTTP/1.1 404 Not Found\r\nConnection: close\r\n";
+char HTTP_400HEADER[] = "HTTP/1.1 400 Bad request\r\nConnection: close\r\n";
 
-
+bool iTerminateNow = false;
 
 int CreateHTTPserver(MS5611* ms5611, ADS1256* ads1256)
 {
@@ -228,6 +219,8 @@ int CreateHTTPserver(MS5611* ms5611, ADS1256* ads1256)
                 }
                 else if(!strcmp(strHTTP_requestPath, "/FOAflux"))
                 {
+                    // not used today, client asks for component values and does the math
+                    // This saves from adc jerking
 					float fThCvoltage = 0.0f;
 					float fThR = 0.0f;
 					float fValue = ads1256->GetFlux(fThCvoltage, fThR);
@@ -317,6 +310,8 @@ int CreateHTTPserver(MS5611* ms5611, ADS1256* ads1256)
             printf(">>>>>>>>>>Parent create child with pid: %d <<<<<<<<<", pid);
             close(clientSocket);
         }
+        
+        if (iTerminateNow) break;
     }
     
     close(connectionSocket);

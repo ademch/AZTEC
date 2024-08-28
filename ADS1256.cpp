@@ -80,7 +80,7 @@ void ADS1256::PinConfigExit()
     
     
     //~ pinMode(ADS1256_MOSI,          INPUT);
-   //~ // pinMode(ADS1256_MISO,        INPUT);
+    //~ // pinMode(ADS1256_MISO,       INPUT);
     //~ pinMode(ADS1256_CLK,           INPUT);
 }
 
@@ -285,7 +285,8 @@ float ADS1256::Read_ADCdata()
 	
 	float fValue = value;
 	float fMax = 0x7FFFFF;
-        
+    
+    //     5v max for PGA=1
     return 2.0f*2.5f*fValue/fMax;
 }
 
@@ -343,6 +344,7 @@ float ADS1256::GetThermistorResistance()
 }
 
 // Returns ThC and ThR values to sample once
+// Do not use, client calculates by itself !!
 float ADS1256::GetFlux(float& fThCvoltage, float& fThR)
 {
     if (!bConnected) return 0.0f;
@@ -350,7 +352,7 @@ float ADS1256::GetFlux(float& fThCvoltage, float& fThR)
 	fThCvoltage = GetThermocoupleVoltage();
 	fThR        = GetThermistorResistance();
 	
-	return (fThCvoltage / (1.0f + 0.0166f * (fThR - 177.0f))) / 3.11f;
+	return ( (fThCvoltage*1000.0f) / (1.0f + 0.0166f * (fThR - 177.0f))) / 3.11f;
 }
 
 // -8388608 to 8388607

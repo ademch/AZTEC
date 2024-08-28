@@ -19,13 +19,16 @@ MS5611 ms5611(MS5611_SAMPLES_4096);
 ADS1256 ads1256;
 
 
+
+extern bool iTerminateNow;
+
 void sigintHandler(int s)
 {
     printf("Caught signal %d\n", s);
     
    	ads1256.PinConfigExit();
-
-    exit(1); 
+    
+    iTerminateNow = true;
 }
 
 

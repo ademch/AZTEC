@@ -25,6 +25,7 @@
 		let fTemperature;
 		let fPressure;
 		let fThCvoltage;
+        let fThCvoltageMV;
 		let fThermVoltage;
 		let fThermResistance;
 		let fFlux;
@@ -87,13 +88,12 @@
 				console.log(summary);
 				
 				fThCvoltage = parseFloat(summary);
-				
-				let fValMV = fThCvoltage*1000;
+				fThCvoltageMV = fThCvoltage*1000;
 
-				$("idThermocoupleLabel").textContent = "Thermocouple: " + fValMV.toFixed(3) + " mV";
+				$("idThermocoupleLabel").textContent = "Thermocouple: " + fThCvoltageMV.toFixed(3) + " mV";
 
 				let point = {};
-				point.value = fValMV;
+				point.value = fThCvoltageMV;
 				point.time  = Date.now();
 				
 				aPointsThermocouple.push(point);
@@ -102,6 +102,7 @@
 			{
 				console.log('Error:' + error.message);
 			}
+            
 			try
 			{
 				const response = await fetch('http://localhost:8081/FOAthermistorV');
@@ -122,6 +123,7 @@
 			{
 				console.log('Error:' + error.message);
 			}
+            
 			try
 			{
 				const response = await fetch('http://localhost:8081/FOAthermistorR');
@@ -145,7 +147,12 @@
 			
 			try
 			{
-				fFlux  = (fThCvoltage / (1.0 + 0.0166 * (fThermResistance - 177.0))) / 3.11;
+				const K20    = 3.11;     // mV*m^2 / kW
+                const alpha  = 0.0166;
+                const Rconst = 177.0;    // Ohm
+                
+                fFlux  = (fThCvoltageMV / (1.0 + alpha * (fThermResistance - Rconst))) / K20;
+                fFlux *= 1000;           // convert kW to Watts
 				console.log(fFlux);
 				
 				$("idFluxLabel").textContent = "Flux: " + fFlux.toFixed(2) + " W/m²";

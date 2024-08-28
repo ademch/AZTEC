@@ -70,7 +70,7 @@
 
 	async function FetchConfiguration()
 	{
-		if (confirm("Do you want to load profile?\nThe current profile will be overwritten") == false) return;
+		if (confirm("Do you want to load profile?\nThe current settings will be overwritten") == false) return;
 
 		try
 		{

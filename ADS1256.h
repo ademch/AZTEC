@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define REF_VOLTAGE         2.983f
+#define REF_VOLTAGE         2.978f
 #define ETALON_RESISTANCE 181.875f
 
 // channel gain
@@ -63,6 +63,9 @@ typedef enum
 
 // Thermocouple
 #define ADS1256_AIN3P_AINCOMN  (ADS1256_AIN3_P | ADS1256_AINCOM_N)
+
+// Ref voltage
+#define ADS1256_AIN4P_AINCOMN  (ADS1256_AIN4_P | ADS1256_AINCOM_N)
 
 typedef enum
 {
@@ -181,7 +184,6 @@ private:
 	void ConfigInputMultiplexer(uint8_t uiPosNeg);
 	
 	float Read_ADCdata();
-
 
 };
 
