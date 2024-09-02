@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#define REF_VOLTAGE         2.978f
-#define ETALON_RESISTANCE 181.875f
+#define REF_VOLTAGE         2.9795f
+#define ETALON_RESISTANCE   181.875f
 
 // channel gain
 typedef enum
@@ -167,7 +167,7 @@ public:
 
 private:
 
-	bool bConnected;
+	bool bPresentOnBus;
 	
 	uint8_t ReadChipID();
 	void WaitDRDY();

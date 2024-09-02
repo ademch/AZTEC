@@ -30,8 +30,6 @@ char HTTP_201HEADER[] = "HTTP/1.1 201 CREATED\r\nConnection: close\r\n";
 char HTTP_404HEADER[] = "HTTP/1.1 404 Not Found\r\nConnection: close\r\n";
 char HTTP_400HEADER[] = "HTTP/1.1 400 Bad request\r\nConnection: close\r\n";
 
-bool iTerminateNow = false;
-
 int CreateHTTPserver(MS5611* ms5611, ADS1256* ads1256)
 {
     int connectionSocket, clientSocket, pid; 
@@ -311,7 +309,6 @@ int CreateHTTPserver(MS5611* ms5611, ADS1256* ads1256)
             close(clientSocket);
         }
         
-        if (iTerminateNow) break;
     }
     
     close(connectionSocket);

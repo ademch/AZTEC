@@ -10,7 +10,7 @@
 
 ADS1256::ADS1256()
 {
-    bConnected = false;
+    bPresentOnBus = false;
 }
 
 
@@ -100,7 +100,7 @@ uint8_t ADS1256::Init()
     if(ReadChipID() == 3)
     {
         printf("ADS1256 ID Read success\n");
-        bConnected = true;
+        bPresentOnBus = true;
 	}
     else
     {
@@ -222,7 +222,7 @@ uint8_t ADS1256::ReadChipID()
 // Configure ADC gain and sampling speed
 void ADS1256::ConfigADC(ADS1256_GAIN gain, uint8_t drate)
 {
-	if (!bConnected) return;
+	if (!bPresentOnBus) return;
 	
     uint8_t registers[4] = {0,0,0,0};
     
@@ -293,7 +293,7 @@ float ADS1256::Read_ADCdata()
 // 
 float ADS1256::GetChannelValue(uint8_t uiPosNeg)
 {
-    if (!bConnected) return 0.0f;
+    if (!bPresentOnBus) return 0.0f;
     
 	time_t rawtime;
 	time(&rawtime);
@@ -313,7 +313,7 @@ float ADS1256::GetChannelValue(uint8_t uiPosNeg)
 
 float ADS1256::GetThermocoupleVoltage()
 {
-    if (!bConnected) return 0.0f;
+    if (!bPresentOnBus) return 0.0f;
 
 	return GetChannelValue(ADS1256_AIN3P_AINCOMN);
 }
@@ -322,7 +322,7 @@ float ADS1256::GetThermocoupleVoltage()
 
 float ADS1256::GetThermistorVoltage()
 {
-    if (!bConnected) return 0.0f;
+    if (!bPresentOnBus) return 0.0f;
 
 	return GetChannelValue(ADS1256_AIN2P_AINCOMN);
 }
@@ -330,7 +330,7 @@ float ADS1256::GetThermistorVoltage()
 
 float ADS1256::GetThermistorResistance()
 {
-    if (!bConnected) return 0.0f;
+    if (!bPresentOnBus) return 0.0f;
     
 	float fVoltage = GetThermistorVoltage();
 	
@@ -347,7 +347,7 @@ float ADS1256::GetThermistorResistance()
 // Do not use, client calculates by itself !!
 float ADS1256::GetFlux(float& fThCvoltage, float& fThR)
 {
-    if (!bConnected) return 0.0f;
+    if (!bPresentOnBus) return 0.0f;
     
 	fThCvoltage = GetThermocoupleVoltage();
 	fThR        = GetThermistorResistance();
@@ -405,8 +405,7 @@ unsigned int ADS1256::ReadScalingCalibration()
 
 void ADS1256::WriteOffsetCalibration(int iOffset)
 {
-	if (!bConnected) return;
-	
+	if (!bPresentOnBus) return;
     
     DEV_gpio_write(ADS1256_CS_PIN, 0);		// cs stays low during the whole command sequence
 		DEV_SPI_WriteByte(CMD_WREG | 5);	// address of the first register to be written
@@ -426,7 +425,7 @@ void ADS1256::WriteOffsetCalibration(int iOffset)
 
 void ADS1256::WriteScalingCalibration(unsigned int iScale)
 {
-	if (!bConnected) return;
+	if (!bPresentOnBus) return;
 	
     DEV_gpio_write(ADS1256_CS_PIN, 0);		// cs stays low during the whole command sequence
 		DEV_SPI_WriteByte(CMD_WREG | 8);	// address of the first register to be written

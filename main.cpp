@@ -14,13 +14,11 @@
 
 using namespace std;
 
-
-MS5611 ms5611(MS5611_SAMPLES_4096);
+MS5611  ms5611_1(MS5611_SAMPLES_4096, MS5611_ADDRESS_1);
+MS5611  ms5611_2(MS5611_SAMPLES_4096, MS5611_ADDRESS_2);
 ADS1256 ads1256;
 
 
-
-extern bool iTerminateNow;
 
 void sigintHandler(int s)
 {
@@ -28,7 +26,9 @@ void sigintHandler(int s)
     
    	ads1256.PinConfigExit();
     
-    iTerminateNow = true;
+    MS5611::closeBus();
+    
+    exit(EXIT_SUCCESS);
 }
 
 
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 			
 	// Calibration values acquired from physical calibration
 	ads1256.WriteOffsetCalibration(-803);
-	ads1256.WriteScalingCalibration(3843750);	 // vs 3863056 factory // FLuke 3855000
+	ads1256.WriteScalingCalibration(3846000);	 // recent 3843750 // vs 3863056 factory // FLuke 3855000
 			
 	int iOffsetCoef = ads1256.ReadOffsetCalibration();
 	printf("Calibration offset coefficient: %d\n", iOffsetCoef);
@@ -69,46 +69,42 @@ int main(int argc, char *argv[])
 	printf("Calibration scale coefficient: %d\n", iScaleCoef);
 			
 
-	//~ while(1)
-	//~ {
-		//~ float fValue;
-		//~ fValue = ads1256.GetChannelValue(ADS1256_AIN2P_AINCOMN);
-		//~ printf("ADC%d value %fv\n", 2, fValue);
-	
-
-			
-		//~ fValue = ads1256.GetChannelValue(ADS1256_AIN3P_AINCOMN);
-		//~ printf("ADC%d value %fv\n", 3, fValue);
+	// while(1)
+	// {
+	//	float fValue;
+	//		
+	//	fValue = ads1256.GetChannelValue(ADS1256_AIN4P_AINCOMN);
+	//	printf("ADC%d value %fv\n", 3, fValue);
 		
-		//~ delayMicroseconds(1000000);
-	//~ }
+	//	delayMicroseconds(1000000);
+	//}
 		
     printf("\n\n");
 	
     // Open I2C bus
-    if (!ms5611.openBus())
+    if (!MS5611::openBus())
         printf("Failed to open I2C bus\n");
     else
 		printf("I2C bus opened successfully\n");
     
 	_delayMS(10);
     
-	if (ms5611.sendReset() < 0)
-		printf("Device 0x%X did not respond\n", MS5611_ADDRESS);
+	if (ms5611_2.sendReset() < 0)
+		printf("MS5611 0x%X did not respond\n", MS5611_ADDRESS_2);
 	else
-		printf("MS5611 reset successfully\n");
+		printf("MS5611 0x%X reset successfully\n", MS5611_ADDRESS_2);
 	
     _delayMS(100);
 
-    ms5611.readPROMcoefficients();
+    ms5611_2.readPROMcoefficients();
     
-    float fTemp = ms5611.readTemperature();
+    float fTemp = ms5611_2.readTemperature();
     printf("Temperature %f C\n", fTemp);
 
-    float fPressure = ms5611.readPressure();
+    float fPressure = ms5611_2.readPressure();
     printf("Pressure %f mBar\n", fPressure);
     
-    CreateHTTPserver(&ms5611, &ads1256);
+    CreateHTTPserver(&ms5611_2, &ads1256);
     
     return 0;
 }

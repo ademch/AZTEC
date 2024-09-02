@@ -151,7 +151,7 @@
                 const alpha  = 0.0166;
                 const Rconst = 177.0;    // Ohm
                 
-                fFlux  = (fThCvoltageMV / (1.0 + alpha * (fThermResistance - Rconst))) / K20;
+                fFlux  = ((fThCvoltageMV-10.0) / (1.0 + alpha * (fThermResistance - Rconst))) / K20;
                 fFlux *= 1000;           // convert kW to Watts
 				console.log(fFlux);
 				

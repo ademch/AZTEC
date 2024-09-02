@@ -4,7 +4,10 @@
 
 #include <stdint.h>
 
-#define MS5611_ADDRESS                0x77
+                                            //             ___
+#define MS5611_ADDRESS_1              0x77  // 1 1 1 0 1 1 CSB
+                                            //             ___
+#define MS5611_ADDRESS_2              0x76  // 1 1 1 0 1 1 CSB
 
 #define MS5611_CMD_ADC_READ           0x00
 #define MS5611_CMD_RESET              0x1E
@@ -28,9 +31,10 @@ class MS5611
 {
 public:
 
-	MS5611(ms5611_osr_t osr);
+	MS5611(ms5611_osr_t osr, int _address);
 	
-	bool openBus();
+	static bool openBus();
+	static void closeBus();
 	
  	unsigned int readRawTemperature(void);
 	unsigned int readRawPressure(void);
@@ -48,8 +52,12 @@ public:
 
 private:
 
+	static int iDev;
+    
+    int address;
+
 	unsigned char uosr;
-	bool bConnected;
+	bool bPresentOnBus;
 	
 	uint16_t coef0, coef7;
 	uint16_t coef1, coef2, coef3, coef4, coef5, coef6;
@@ -57,8 +65,6 @@ private:
 	int TEMP2;
 	long long int OFF2, SENS2;
 	
-	int iDev;
-
 	uint16_t readRegister16(unsigned char reg);
 	uint32_t readRegister24(unsigned char reg);
 	int      sendCommand(unsigned char reg);
