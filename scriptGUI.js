@@ -16,8 +16,10 @@
 	var iStepCompressed, iStepNormal;
 
 	// arrays of sampled channels
-	var aPointsTemp = [];
-	var aPointsBaro = [];
+	var aPointsTemp  = [];
+	var aPointsBaro  = [];
+	var aPointsTemp2 = [];
+	var aPointsBaro2 = [];
 	var aPointsThermocouple = [];
 	var aPointsThermistorV = [];
 	var aPointsThermistorR = [];
@@ -33,13 +35,20 @@
 
 	// Initial values (values in GUI may be unfinished or cached by browser, here we store operational values)
 	var strPressureDim   = "kPa";
+	var strPressureDim2  = "kPa";
 
 	var fTemperatureMin  = -30;
 	var fTemperatureMax  = 70;
 	
+	var fTemperatureMin2 = -30;
+	var fTemperatureMax2 = 70;
+
 	var fPressureMin     = 0;
 	var fPressureMax     = 200;
 	
+	var fPressureMin2    = 0;
+	var fPressureMax2    = 200;
+
 	var fThermocoupleMin = 0;
 	var fThermocoupleMax = 20;
 	
@@ -58,11 +67,10 @@
 	{
 		strPressureDim = object.value;
 		
+		let fVal;
 		if (strPressureDim == "mBar")
 		{
-			let fVal;
 			fVal = $("idPressureMin").value;
-			
 			$("idPressureMin").value = fVal*10;
 			fPressureMin = fVal*10;
 			
@@ -70,14 +78,12 @@
 			$("idPressureMax").value = fVal*10;
 			fPressureMax = fVal*10;
 			
-			$("pressureDim1").innerHTML = 'mBar';
-			$("pressureDim2").innerHTML = 'mBar';
+			$("pressureDimMin").innerHTML = 'mBar';
+			$("pressureDimMax").innerHTML = 'mBar';
 		}
 		else
 		{
-			let fVal;
 			fVal = $("idPressureMin").value;
-			
 			$("idPressureMin").value = fVal/10;
 			fPressureMin = fVal/10;
 			
@@ -85,35 +91,81 @@
 			$("idPressureMax").value = fVal/10;
 			fPressureMax = fVal/10;
 			
-			$("pressureDim1").innerHTML = 'kPa';
-			$("pressureDim2").innerHTML = 'kPa';
+			$("pressureDimMin").innerHTML = 'kPa';
+			$("pressureDimMax").innerHTML = 'kPa';
 		}
 		
 		DrawPlot();
 	}
 	
-	// On page load callback
-	function OnInit()
+	// GUI callback triggered on pressure dimension change
+	function PressureDimensionChanged2(object)
 	{
+		strPressureDim2 = object.value;
+		
+		let fVal;
+		if (strPressureDim2 == "mBar")
+		{
+			fVal = $("idPressureMin2").value;
+			$("idPressureMin2").value = fVal*10;
+			fPressureMin2 = fVal*10;
+			
+			fVal = $("idPressureMax2").value;
+			$("idPressureMax2").value = fVal*10;
+			fPressureMax2 = fVal*10;
+			
+			$("pressureDimMin2").innerHTML = 'mBar';
+			$("pressureDimMax2").innerHTML = 'mBar';
+		}
+		else
+		{
+			fVal = $("idPressureMin2").value;
+			$("idPressureMin2").value = fVal/10;
+			fPressureMin2 = fVal/10;
+			
+			fVal = $("idPressureMax2").value;
+			$("idPressureMax2").value = fVal/10;
+			fPressureMax2 = fVal/10;
+			
+			$("pressureDimMin2").innerHTML = 'kPa';
+			$("pressureDimMax2").innerHTML = 'kPa';
+		}
+		
+		DrawPlot();
+	}
+
+	// On page load callback
+	async function OnInit()
+	{
+        // wait to be able to calulcate GUI dependant variables correctly
+        await DisableInactiveDevices();
+        
 		InitGUIparamsFromData();
 		
 		// handles the case when page remembers checkbox selection after refresh
 		CalcGUIcoefficients();
 
-		idIntervalPing = setInterval(PingHTTPserver, 1000);
+		idIntervalPing = setInterval(PingHTTPserver, 2000);
 	}
 
 
 	// GUI init
 	function InitGUIparamsFromData()
 	{
-		$("idPressureDimSelector").value = strPressureDim;
+		$("idPressureDimSelector").value  = strPressureDim;
+		$("idPressureDimSelector2").value = strPressureDim2;
 
 		$("idTemperatureMin").value  = fTemperatureMin;
 		$("idTemperatureMax").value  = fTemperatureMax;
 
+		$("idTemperatureMin2").value = fTemperatureMin2;
+		$("idTemperatureMax2").value = fTemperatureMax2;
+
 		$("idPressureMin").value     = fPressureMin;
 		$("idPressureMax").value     = fPressureMax;
+
+		$("idPressureMin2").value    = fPressureMin2;
+		$("idPressureMax2").value    = fPressureMax2;
 
 		$("idThermocoupleMin").value = fThermocoupleMin;
 		$("idThermocoupleMax").value = fThermocoupleMax;
@@ -136,8 +188,14 @@
 		fTemperatureMin  = $F("idTemperatureMin");
 		fTemperatureMax  = $F("idTemperatureMax");
 		
+		fTemperatureMin2 = $F("idTemperatureMin2");
+		fTemperatureMax2 = $F("idTemperatureMax2");
+
 		fPressureMin     = $F("idPressureMin");
 		fPressureMax     = $F("idPressureMax");
+
+		fPressureMin2    = $F("idPressureMin2");
+		fPressureMax2    = $F("idPressureMax2");
 
 		fThermocoupleMin = $F("idThermocoupleMin");
 		fThermocoupleMax = $F("idThermocoupleMax");
@@ -169,6 +227,17 @@
 				x[i].style.display = "table-row";
 		}
 
+		x = document.getElementsByClassName("BARAclass2");
+		if ($("idBARA2").checked == false)
+		{
+			for (let i = 0; i < x.length; i++)
+				x[i].style.display = "none";
+		}
+		else {
+			for (let i = 0; i < x.length; i++)
+				x[i].style.display = "table-row";
+		}
+
 		x = document.getElementsByClassName("FOAclass");
 		if ($("idFOA").checked == false)
 		{
@@ -181,7 +250,10 @@
 				x[i].style.display = "table-row";
 		}
 
-		iLeftMargin   = ($("idBARA").checked == true) ? 150 : 50;
+        if (($("idBARA").checked == true) && ($("idBARA2").checked == true))
+            iLeftMargin = 310;
+        else
+            iLeftMargin = (($("idBARA").checked == true) || ($("idBARA2").checked == true)) ? 150 : 50;
 		iRightMargin  = ($("idFOA").checked  == true) ? 340 : 40;
 		iTopMargin    = 50;
 		iBottomMargin = 110;
@@ -208,21 +280,27 @@
 		if ((aPointsTemp.length || aPointsThermocouple.length) &&
 		    (confirm("Previous data will be lost. Continue?") == false)) return;
 		    
-		if ( ($("idBARA").checked == false) && ($("idFOA").checked == false) ) {
+		if ( ($("idBARA").checked  == false) &&
+             ($("idBARA2").checked == false) &&
+             ($("idFOA").checked   == false) )
+        {
 			alert("No groups selected for monitoring");
 			return;
 		}
 		    
 		// prevent "group" collapse/expand during monitoring as selection effects sampled channels
-		$("idBARA").disabled = true;
-		$("idFOA").disabled  = true;
+		$("idBARA").disabled  = true;
+		$("idBARA2").disabled = true;
+		$("idFOA").disabled   = true;
 		    
-		aPointsTemp = [];
-		aPointsBaro = [];
+		aPointsTemp  = [];
+		aPointsBaro  = [];
+		aPointsTemp2 = [];
+		aPointsBaro2 = [];
 		aPointsThermocouple = [];
-		aPointsThermistorV = [];
-		aPointsThermistorR = [];
-		aPointsFlux = [];
+		aPointsThermistorV  = [];
+		aPointsThermistorR  = [];
+		aPointsFlux  = [];
 		
 		idInterval = setInterval(fetchDataAsync, 1000);
 		
@@ -239,19 +317,20 @@
 			clearInterval(idInterval);
 			idInterval = -1;
 			
-			$("idBARA").disabled = false;
-			$("idFOA").disabled = false;
+			$("idBARA").disabled  = false;
+			$("idBARA2").disabled = false;
+			$("idFOA").disabled   = false;
 		}
 	}
 	
 
-	function DrawRangeMarks()
+	function DrawRangeMarksText()
 	{
 		ctx.font = "bold 20px serif";
 		let fCurrent;
 		let fDelta;
 
-		if ($("idBARA").checked == true)
+		if ( ($("idBARA").checked == true) && ($("idBARA2").checked == true))
 		{
 			// Temperature
 			ctx.fillStyle = $("idTemperatureColor").value;
@@ -262,10 +341,9 @@
 			
 			fCurrent = fTemperatureMin;
 			fDelta  = (fTemperatureMax - fTemperatureMin)/10;
-			for (let i=0; i<=10; i++)
+			for (let i=0; i<=10; i++, fCurrent = fCurrent + fDelta)
 			{
 				ctx.fillText(Number(fCurrent.toFixed(1)), 10, iBottomAbs - 5 - i*iStepV);
-				fCurrent = fCurrent + fDelta;
 			}
 			
 			// Pressure
@@ -280,10 +358,108 @@
 			
 			fCurrent = fPressureMin;
 			fDelta  = (fPressureMax - fPressureMin)/10;
-			for (let i=0; i<=10; i++)
+			for (let i=0; i<=10; i++, fCurrent = fCurrent + fDelta)
 			{
 				ctx.fillText(Number(fCurrent.toFixed(1)), 70, iBottomAbs - 5 - i*iStepV);
-				fCurrent = fCurrent + fDelta;
+			}
+
+            // idBARA2------------------------------------------------------------
+
+			// Temperature
+			ctx.fillStyle = $("idTemperatureColor2").value;
+			ctx.fillText("°C", 160, c.height-45);
+			ctx.fillText("T",  168, c.height-15);
+				
+			//ctx.fillStyle = "black";
+			
+			fCurrent = fTemperatureMin2;
+			fDelta  = (fTemperatureMax2 - fTemperatureMin2)/10;
+			for (let i=0; i<=10; i++, fCurrent = fCurrent + fDelta)
+			{
+				ctx.fillText(Number(fCurrent.toFixed(1)), 160, iBottomAbs - 5 - i*iStepV);
+			}
+			
+			// Pressure
+			ctx.fillStyle = $("idPressureColor2").value;
+			if (strPressureDim2 == "kPa")
+				ctx.fillText("kPa", 230, c.height-45);
+			else
+				ctx.fillText("mBar", 230, c.height-45);
+			ctx.fillText("Ps", 230, c.height-15);
+			
+			//ctx.fillStyle = "black";
+			
+			fCurrent = fPressureMin2;
+			fDelta  = (fPressureMax2 - fPressureMin2)/10;
+			for (let i=0; i<=10; i++, fCurrent = fCurrent + fDelta)
+			{
+				ctx.fillText(Number(fCurrent.toFixed(1)), 230, iBottomAbs - 5 - i*iStepV);
+			}
+        }
+		else if ($("idBARA").checked == true)
+		{
+			// Temperature
+			ctx.fillStyle = $("idTemperatureColor").value;
+			ctx.fillText("°C", 10, c.height-45);
+			ctx.fillText("T",  18, c.height-15);
+				
+			//ctx.fillStyle = "black";
+			
+			fCurrent = fTemperatureMin;
+			fDelta  = (fTemperatureMax - fTemperatureMin)/10;
+			for (let i=0; i<=10; i++, fCurrent = fCurrent + fDelta)
+			{
+				ctx.fillText(Number(fCurrent.toFixed(1)), 10, iBottomAbs - 5 - i*iStepV);
+			}
+			
+			// Pressure
+			ctx.fillStyle = $("idPressureColor").value;
+			if (strPressureDim == "kPa")
+				ctx.fillText("kPa", 70, c.height-45);
+			else
+				ctx.fillText("mBar", 70, c.height-45);
+			ctx.fillText("Ps", 70, c.height-15);
+			
+			//ctx.fillStyle = "black";
+			
+			fCurrent = fPressureMin;
+			fDelta  = (fPressureMax - fPressureMin)/10;
+			for (let i=0; i<=10; i++, fCurrent = fCurrent + fDelta)
+			{
+				ctx.fillText(Number(fCurrent.toFixed(1)), 70, iBottomAbs - 5 - i*iStepV);
+			}
+		}
+        else if ($("idBARA2").checked == true)
+		{
+			// Temperature
+			ctx.fillStyle = $("idTemperatureColor2").value;
+			ctx.fillText("°C", 10, c.height-45);
+			ctx.fillText("T",  18, c.height-15);
+				
+			//ctx.fillStyle = "black";
+			
+			fCurrent = fTemperatureMin2;
+			fDelta  = (fTemperatureMax2 - fTemperatureMin2)/10;
+			for (let i=0; i<=10; i++, fCurrent = fCurrent + fDelta)
+			{
+				ctx.fillText(Number(fCurrent.toFixed(1)), 10, iBottomAbs - 5 - i*iStepV);
+			}
+			
+			// Pressure
+			ctx.fillStyle = $("idPressureColor2").value;
+			if (strPressureDim2 == "kPa")
+				ctx.fillText("kPa", 70, c.height-45);
+			else
+				ctx.fillText("mBar", 70, c.height-45);
+			ctx.fillText("Ps", 70, c.height-15);
+			
+			//ctx.fillStyle = "black";
+			
+			fCurrent = fPressureMin2;
+			fDelta  = (fPressureMax2 - fPressureMin2)/10;
+			for (let i=0; i<=10; i++, fCurrent = fCurrent + fDelta)
+			{
+				ctx.fillText(Number(fCurrent.toFixed(1)), 70, iBottomAbs - 5 - i*iStepV);
 			}
 		}
 		
@@ -299,10 +475,9 @@
 			
 			fCurrent = fFluxMin;
 			fDelta  = (fFluxMax - fFluxMin)/10;
-			for (let i=0; i<=10; i++)
+			for (let i=0; i<=10; i++, fCurrent = fCurrent + fDelta)
 			{
 				ctx.fillText(Number(fCurrent.toFixed(1)), c.width - 310, iBottomAbs - 5 - i*iStepV);
-				fCurrent = fCurrent + fDelta;
 			}
 			
 			// Thermocouple mV
@@ -314,10 +489,9 @@
 			
 			fCurrent = fThermocoupleMin;
 			fDelta  = (fThermocoupleMax - fThermocoupleMin)/10;
-			for (let i=0; i<=10; i++)
+			for (let i=0; i<=10; i++, fCurrent = fCurrent + fDelta)
 			{
 				ctx.fillText(Number(fCurrent.toFixed(1)), c.width - 220, iBottomAbs - 5 - i*iStepV);
-				fCurrent = fCurrent + fDelta;
 			}
 			
 			// Thermoresistor Ohm
@@ -329,10 +503,9 @@
 			
 			fCurrent = fThermistorRMin;
 			fDelta  = (fThermistorRMax - fThermistorRMin)/10;
-			for (let i=0; i<=10; i++)
+			for (let i=0; i<=10; i++, fCurrent = fCurrent + fDelta)
 			{
 				ctx.fillText(Number(fCurrent.toFixed(1)), c.width - 150, iBottomAbs - 5 - i*iStepV);
-				fCurrent = fCurrent + fDelta;
 			}
 			
 			// Thermistor voltage
@@ -344,10 +517,9 @@
 			
 			fCurrent = fThermistorVMin;
 			fDelta  = (fThermistorVMax - fThermistorVMin)/10;
-			for (let i=0; i<=10; i++)
+			for (let i=0; i<=10; i++, fCurrent = fCurrent + fDelta)
 			{
-				ctx.fillText(fCurrent.toFixed(2), c.width - 70, iBottomAbs - 5 - i*iStepV);
-				fCurrent = fCurrent + fDelta;
+				ctx.fillText(fCurrent.toFixed(2), c.width - 70, iBottomAbs - 5 - i*iStepV);;
 			}
 		}
 	}
@@ -464,7 +636,7 @@
 		}
 		
 		// STEP: draw range marks
-		DrawRangeMarks();
+		DrawRangeMarksText();
 
 
 		// STEP: draw time legend
@@ -503,12 +675,29 @@
 			// STEP: draw Pressure plot
 			if ($("idPressure").checked == true)
 			{
-				let fScaler = 1;
-				if (strPressureDim == "kPa")
-					fScaler = 10;
+				let fScaler = (strPressureDim == "kPa") ? 10 : 1;
 			
 				elColor = $("idPressureColor");
 				DrawCurve(aPointsBaro, fPressureMin*fScaler, fPressureMax*fScaler, elColor.value);
+			}
+		}
+        
+		if ($("idBARA2").checked == true)
+		{
+			// STEP: draw Temperature plot
+			if ($("idTemperature2").checked == true)
+			{
+				elColor = $("idTemperatureColor2");
+				DrawCurve(aPointsTemp2, fTemperatureMin2, fTemperatureMax2, elColor.value);
+			}
+			
+			// STEP: draw Pressure plot
+			if ($("idPressure2").checked == true)
+			{
+				let fScaler = (strPressureDim2 == "kPa") ? 10 : 1;
+
+				elColor = $("idPressureColor2");
+				DrawCurve(aPointsBaro2, fPressureMin2*fScaler, fPressureMax2*fScaler, elColor.value);
 			}
 		}
 		
@@ -542,4 +731,5 @@
 				DrawCurve(aPointsFlux, fFluxMin, fFluxMax, elColor.value);
 			}
 		}
+        
 	}

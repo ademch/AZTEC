@@ -1,22 +1,61 @@
 
 
+	async function DisableInactiveDevices()
+	{
+        try
+        {
+            const response = await fetch('http://localhost:8081/BARAconnected1');
+            const summary  = await response.text();
+            
+            $("idBARA").checked = (summary === "1");
+        }
+        catch (error)
+        {
+            console.log('Error:' + error.message);
+        }
+        
+        try
+        {
+            const response = await fetch('http://localhost:8081/BARAconnected2');
+            const summary  = await response.text();
+            
+            $("idBARA2").checked = (summary === "1");
+        }
+        catch (error)
+        {
+            console.log('Error:' + error.message);
+        }
+        
+        try
+        {
+            const response = await fetch('http://localhost:8081/FOAconnected');
+            const summary  = await response.text();
+            
+            $("idFOA").checked = (summary === "1");
+        }
+        catch (error)
+        {
+            console.log('Error:' + error.message);
+        }
+    }
+
 	function PingHTTPserver()
 	{
-	   fetch('http://localhost:8081/',
-	   {
-		   method  : 'HEAD',
-	   })
-	   .then( function(res) {	
-								//console.log($("imgStatus").src);
-								if ((res.status == 200) && ($("imgStatus").src.indexOf("animation.gif") == -1))
-								{
-									$("imgStatus").src ="animation.gif";
-								}
-							})
-	   .catch(function(err) {
-								if ($("imgStatus").src.indexOf("static.png") == -1)
-									$("imgStatus").src = "static.png";
-							});
+	    fetch('http://localhost:8081/',
+	    {
+		    method  : 'HEAD',
+	    })
+	    .then( function(res) {	
+            //console.log($("imgStatus").src);
+            if ((res.status == 200) && ($("imgStatus").src.indexOf("animation.gif") == -1))
+            {
+                $("imgStatus").src ="animation.gif";
+            }
+         })
+	    .catch(function(err) {
+            if ($("imgStatus").src.indexOf("static.png") == -1)
+                $("imgStatus").src = "static.png";
+        });
     }
 	
 	
@@ -24,6 +63,8 @@
 	{
 		let fTemperature;
 		let fPressure;
+		let fTemperature2;
+		let fPressure2;
 		let fThCvoltage;
         let fThCvoltageMV;
 		let fThermVoltage;
@@ -35,7 +76,7 @@
 		{
 			try
 			{
-				const response = await fetch('http://localhost:8081/BARAtemperature');
+				const response = await fetch('http://localhost:8081/BARAtemperature1');
 				const summary  = await response.text();
 				console.log(summary);
 				
@@ -56,7 +97,7 @@
 			
 			try
 			{
-				const response = await fetch('http://localhost:8081/BARApressure');
+				const response = await fetch('http://localhost:8081/BARApressure1');
 				const summary  = await response.text();
 				console.log(summary);
 				
@@ -79,6 +120,54 @@
 			}
 		}
 		
+		if ($("idBARA2").checked == true)
+		{
+			try
+			{
+				const response = await fetch('http://localhost:8081/BARAtemperature2');
+				const summary  = await response.text();
+				console.log(summary);
+				
+				fTemperature2 = parseFloat(summary);
+				
+				$("idTemperatureLabel2").innerHTML = "Temperature: " + fTemperature2.toFixed(2) + " °C";
+				
+				let point = {};
+				point.value = fTemperature2;
+				point.time  = Date.now();
+				
+				aPointsTemp2.push(point);
+			}
+			catch (error)
+			{
+				console.log('Error:' + error.message);
+			}
+			
+			try
+			{
+				const response = await fetch('http://localhost:8081/BARApressure2');
+				const summary  = await response.text();
+				console.log(summary);
+				
+				fPressure2 = parseFloat(summary);
+				
+				if (strPressureDim2 == "kPa")
+					$("idPressureLabel2").textContent = "Pressure: " + (fPressure2*0.1).toFixed(3) + " kPa";
+				else
+					$("idPressureLabel2").textContent = "Pressure: " + fPressure2.toFixed(2) + " mBar";
+
+				let point = {};
+				point.value = fPressure2;
+				point.time  = Date.now();
+				
+				aPointsBaro2.push(point);
+			}
+			catch (error)
+			{
+				console.log('Error:' + error.message);
+			}
+		}
+
 		if ($("idFOA").checked == true)
 		{
 			try

@@ -30,7 +30,7 @@ char HTTP_201HEADER[] = "HTTP/1.1 201 CREATED\r\nConnection: close\r\n";
 char HTTP_404HEADER[] = "HTTP/1.1 404 Not Found\r\nConnection: close\r\n";
 char HTTP_400HEADER[] = "HTTP/1.1 400 Bad request\r\nConnection: close\r\n";
 
-int CreateHTTPserver(MS5611* ms5611, ADS1256* ads1256)
+int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
 {
     int connectionSocket, clientSocket, pid; 
     struct sockaddr_in address;
@@ -145,9 +145,16 @@ int CreateHTTPserver(MS5611* ms5611, ADS1256* ads1256)
 
                     sendGETresponse(clientSocket, strFilePath, strResponse);
                 }
-                else if(!strcmp(strHTTP_requestPath, "/BARAtemperature"))
+                else if(strstr(strHTTP_requestPath, "/BARAtemperature"))
                 {
-                    float fTemp = ms5611->readTemperature();
+                    int iChannel = 0;
+                    sscanf(strHTTP_requestPath, "/BARAtemperature%d", &iChannel);
+                    
+                    float fTemp = 0.0f;
+                    if (iChannel == 1)
+                        fTemp = ms5611_1->readTemperature();
+                    else if (iChannel == 2)
+                        fTemp = ms5611_2->readTemperature();
                     
                     char strTemperature[20];
                     sprintf(strTemperature, "%f", fTemp);
@@ -159,9 +166,16 @@ int CreateHTTPserver(MS5611* ms5611, ADS1256* ads1256)
                     write(clientSocket, strTemperature, strlen(strTemperature));
 					printf("%s\n", strTemperature); 
                 }
-                else if(!strcmp(strHTTP_requestPath, "/BARApressure"))
+                else if(strstr(strHTTP_requestPath, "/BARApressure"))
                 {
-                    float fPressure = ms5611->readPressure();
+                    int iChannel = 0;
+                    sscanf(strHTTP_requestPath, "/BARApressure%d", &iChannel);
+                    
+                    float fPressure = 0.0f;
+                    if (iChannel == 1)
+                        fPressure = ms5611_1->readPressure();
+                    else if (iChannel == 2)
+                        fPressure = ms5611_2->readPressure();
                     
                     char strPressure[20];
                     sprintf(strPressure, "%f", fPressure);
@@ -173,6 +187,37 @@ int CreateHTTPserver(MS5611* ms5611, ADS1256* ads1256)
                     write(clientSocket, strPressure, strlen(strPressure));
 					printf("%s\n", strPressure); 
                 }
+                else if(strstr(strHTTP_requestPath, "/BARAconnected"))
+                {
+                    int iChannel = 0;
+                    sscanf(strHTTP_requestPath, "/BARAconnected%d", &iChannel);
+                    
+                    char strConnected[2] = {0, 0};
+                    if (iChannel == 1)
+                        strConnected[0] = ms5611_1->IsConnected() ? '1' : '0';
+                    else if (iChannel == 2)
+                        strConnected[0] = ms5611_2->IsConnected() ? '1' : '0';
+                    
+                    sprintf(strResponse, "%sContent-Type: text/html\r\nContent-Length: %ld\r\n\r\n", HTTP_200HEADER, strlen(strConnected));
+                    
+                    write(clientSocket, strResponse, strlen(strResponse));
+					printf("\nResponse:\n%s\n", strResponse); 
+
+                    write(clientSocket, strConnected, strlen(strConnected));
+					printf("%s\n", strConnected); 
+                }
+                else if(!strcmp(strHTTP_requestPath, "/FOAconnected"))
+                {
+                    char strConnected[2] = {'1', 0};
+                    
+                    sprintf(strResponse, "%sContent-Type: text/html\r\nContent-Length: %ld\r\n\r\n", HTTP_200HEADER, strlen(strConnected));
+                    
+                    write(clientSocket, strResponse, strlen(strResponse));
+					printf("\nResponse:\n%s\n", strResponse); 
+
+                    write(clientSocket, strConnected, strlen(strConnected));
+					printf("%s\n", strConnected); 
+                }                       
                 else if(!strcmp(strHTTP_requestPath, "/FOAthermocouple"))
                 {
 					float fValue = ads1256->GetThermocoupleVoltage();
@@ -441,30 +486,6 @@ void sendPUTresponse(int fdSocket, char strFilePath[], char strBody[], char strR
     
     close(fdFile);
 }
-
-/*
-void setHttpHeader(char httpHeader[])
-{   
-    // File object to return
-    
-    FILE *htmlData = fopen("index.html", "r");
-
-    char line[100];
-    char responseData[1000000];
-    if(htmlData){
-        while (fgets(line, 100, htmlData) != 0 ) {
-            strcat(responseData, line);
-        }
-        // char httpHeader[8000] = "HTTP/1.1 200 OK\r\n\n";
-        strcat(httpHeader, responseData);
-        fclose(htmlData);
-    }
-    else
-    {
-        printf("\n Read index.html file problem");
-    }
-}
-*/
 
 
 /*

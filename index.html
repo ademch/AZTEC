@@ -25,6 +25,7 @@
 	}
 	th, td {
 		border: 1px solid black;
+        line-height: 0.5;
 	}
 </style>
 
@@ -48,16 +49,16 @@
     <td>
 		<b>
 			<input type="checkbox" id="idBARA" name="idBARA" onclick="CalcGUIcoefficients()" checked style="width:20px;height:20px"/>
-			<label for="idBARA" id="idBARALabel">BARA: MS5611</label>
+			<label for="idBARA" id="idBARALabel">BARA: MS5611 A</label>
 		</b>
 	</td>
-    <td style="width:80%" rowspan="11" valign="top">
+    <td style="width:80%" rowspan="12" valign="top">
 		<canvas id="FrontCanvas" width="2090" height="980" style="border:2px solid #d3d3d3;">
 			Your browser does not support the HTML5 canvas tag.
 		</canvas>
 	</td>
   </tr>
-  <tr height="80px" class="BARAclass">
+  <tr height="70px" class="BARAclass">
 	  <td>
 		<div>
 			<input type="color" id="idTemperatureColor" name="idTemperatureColor" value="#ed333b"/>
@@ -76,7 +77,7 @@
 		</div>
 	  </td>
   </tr>
-  <tr height="80px" class="BARAclass">
+  <tr height="70px" class="BARAclass">
 	  <td>
 		<div>
 			<input type="color" id="idPressureColor" name="idPressureColor" value="#1c71d8" />
@@ -96,9 +97,63 @@
 			<div align="center">
 				min
 				<input type="text" id="idPressureMin" name="idPressureMin" onBlur="FocusLost()" onKeyup="Keyup(event)" style="width:40px; text-align:center"/>
-				<span id="pressureDim1">kPa</span> &nbsp;&nbsp; max
+				<span id="pressureDimMin">kPa</span> &nbsp;&nbsp; max
 				<input type="text" id="idPressureMax" name="idPressureMax" onBlur="FocusLost()" onKeyup="Keyup(event)" style="width:40px; text-align:center"/>
-				<span id="pressureDim2">kPa</span>
+				<span id="pressureDimMax">kPa</span>
+			</div>
+		</div>
+	  </td>
+  </tr>
+  <tr height="50px" valign="bottom">
+    <td>
+		<b>
+			<input type="checkbox" id="idBARA2" name="idBARA2" onclick="CalcGUIcoefficients()" checked style="width:20px;height:20px"/>
+			<label for="idBARA2" id="idBARALabel2">BARA: MS5611 B</label>
+		</b>
+	</td>
+  </tr>
+  <tr height="70px" class="BARAclass2">
+	  <td>
+		<div>
+			<input type="color" id="idTemperatureColor2" name="idTemperatureColor2" value="#d9549c"/>
+			&nbsp;&nbsp;
+			<input type="checkbox" id="idTemperature2" name="idTemperature2" onclick="DrawPlot()" checked />
+			<label for="idTemperature2" id="idTemperatureLabel2">Temperature: unknown</label>
+			<br>
+			<br>
+			<div align="center">
+				min
+				<input type="text" id="idTemperatureMin2" name="idTemperatureMin2" onBlur="FocusLost()" onKeyup="Keyup(event)" style="width:40px; text-align:center"/>
+				°C &nbsp;&nbsp; max
+				<input type="text" id="idTemperatureMax2" name="idTemperatureMax2" onBlur="FocusLost()" onKeyup="Keyup(event)" style="width:40px; text-align:center"/>
+				°C
+			</div>
+		</div>
+	  </td>
+  </tr>
+  <tr height="70px" class="BARAclass2">
+	  <td>
+		<div>
+			<input type="color" id="idPressureColor2" name="idPressureColor2" value="#0317e4" />
+			&nbsp;&nbsp;
+			<input type="checkbox" id="idPressure2" name="idPressure2" onclick="DrawPlot()" checked />
+			<label for="idPressure2" id="idPressureLabel2">Pressure: unknown</label>
+
+				<div style="float:right;line-height: 35px;">
+				<select name="idPressureDimSelector2" id="idPressureDimSelector2" onchange="PressureDimensionChanged2(this)" >
+					<option value="kPa">kPa</option>
+					<option value="mBar" selected>mBar</option>
+				</select>
+				</div>
+
+			<br>
+			<br>
+			<div align="center">
+				min
+				<input type="text" id="idPressureMin2" name="idPressureMin2" onBlur="FocusLost()" onKeyup="Keyup(event)" style="width:40px; text-align:center"/>
+				<span id="pressureDimMin2">kPa</span> &nbsp;&nbsp; max
+				<input type="text" id="idPressureMax2" name="idPressureMax2" onBlur="FocusLost()" onKeyup="Keyup(event)" style="width:40px; text-align:center"/>
+				<span id="pressureDimMax2">kPa</span>
 			</div>
 		</div>
 	  </td>
@@ -111,7 +166,7 @@
 		</b>
 		</td>
   </tr>
-  <tr height="80px" class="FOAclass">
+  <tr height="70px" class="FOAclass">
 	  <td>
 		<div>
 			<input type="color" id="idThermocoupleColor" name="idThermocoupleColor" value="#865e3c" />
@@ -130,7 +185,7 @@
 		</div>
 	  </td>
   </tr>
-  <tr height="80px" class="FOAclass">
+  <tr height="70px" class="FOAclass">
 	  <td>
 		<div>
 			<input type="color" id="idThermistorVColor" name="idThermistorVColor" value="#000000" />
@@ -149,7 +204,7 @@
 		</div>
 	  </td>
   </tr>
-  <tr height="80px" class="FOAclass">
+  <tr height="70px" class="FOAclass">
 	  <td>
 		<div>
 			<input type="color" id="idThermistorRColor" name="idThermistorRColor" value="#26a269" />
@@ -168,7 +223,7 @@
 		</div>
 	  </td>
   </tr>
-  <tr height="80px" class="FOAclass">
+  <tr height="70px" class="FOAclass">
 	  <td>
 		<div>
 			<input type="color" id="idFluxColor" name="idFluxColor" value="#d39600" />
@@ -187,9 +242,9 @@
 		</div>	
 	  </td>
   </tr>
-  <tr>
-		<td>
-		</td>
+  <tr><!-- Height accumulator for the case of groups collapse -->
+	  <td>
+	  </td>
   </tr>
   <tr height="50px">
 	  <td align="center">

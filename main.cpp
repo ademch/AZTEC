@@ -89,6 +89,25 @@ int main(int argc, char *argv[])
     
 	_delayMS(10);
     
+    float fTemp, fPressure;
+    
+	if (ms5611_1.sendReset() < 0)
+		printf("MS5611 0x%X did not respond\n", MS5611_ADDRESS_1);
+	else
+		printf("MS5611 0x%X reset successfully\n", MS5611_ADDRESS_1);
+	
+    _delayMS(100);
+
+    ms5611_1.readPROMcoefficients();
+    
+    fTemp = ms5611_1.readTemperature();
+    printf("    Temperature %f C\n", fTemp);
+
+    fPressure = ms5611_1.readPressure();
+    printf("    Pressure %f mBar\n", fPressure);
+    
+	_delayMS(10);
+    
 	if (ms5611_2.sendReset() < 0)
 		printf("MS5611 0x%X did not respond\n", MS5611_ADDRESS_2);
 	else
@@ -98,13 +117,14 @@ int main(int argc, char *argv[])
 
     ms5611_2.readPROMcoefficients();
     
-    float fTemp = ms5611_2.readTemperature();
-    printf("Temperature %f C\n", fTemp);
+    fTemp = ms5611_2.readTemperature();
+    printf("    Temperature %f C\n", fTemp);
 
-    float fPressure = ms5611_2.readPressure();
-    printf("Pressure %f mBar\n", fPressure);
-    
-    CreateHTTPserver(&ms5611_2, &ads1256);
+    fPressure = ms5611_2.readPressure();
+    printf("    Pressure %f mBar\n", fPressure);
+
+    // Proceed to answer HTTP requests  
+    CreateHTTPserver(&ms5611_1, &ms5611_2, &ads1256);
     
     return 0;
 }
