@@ -246,22 +246,29 @@
 	  <td>
 	  </td>
   </tr>
+</table>
+
+<table style="width:100%">
   <tr height="50px">
 	  <td align="center">
 		<div style="display:table-cell; vertical-align:middle">
-			<button type="button" class="REST" onclick="SaveConfiguration()" style="width: 140px; height:26px; font-size: 14px;">Save configuration</button>
-			<button type="button" class="REST" onclick="FetchConfiguration()"  style="margin-left: 20px; width: 140px; height:26px; font-size: 14px;">Load configuation</button>
+			<button type="button" disabled id="idBtnSaveConf" class="REST" onclick="SaveConfiguration()" style="width: 140px; height:26px; font-size: 14px;">Save configuration</button>
+			<button type="button" disabled id="idBtnLoadConf" class="REST" onclick="FetchConfiguration()"  style="margin-left: 20px; width: 140px; height:26px; font-size: 14px;">Load configuation</button>
 		</div>
+	  </td>
+      <td style="width:80%" rowspan="2" valign="middle">
+        <button type="button" disabled id="idBtnSaveLog" onclick="SaveDataLog()" style="margin-left: 20px; width: 140px; height:26px; font-size: 14px;">Save log</button>
 	  </td>
   </tr>
   <tr height="50px">
 	  <td align="center" valign="middle">
-		<button type="button" class="REST" onclick="StartAutoUpdate()" style="width: 140px; height:26px; font-size: 14px; ">Start monitoring</button>
-		<button type="button" class="REST" onclick="StopAutoUpdate()"  style="margin-left: 20px; width: 140px; height:26px; font-size: 14px;">Stop monitoring</button>
+		<button type="button" disabled id="idBtnStart" class="REST" onclick="StartAutoUpdate()" style="width: 140px; height:26px; font-size: 14px; ">Start monitoring</button>
+		<button type="button" disabled id="idBtnStop" class="REST" onclick="StopAutoUpdate()"  style="margin-left: 20px; width: 140px; height:26px; font-size: 14px;">Stop monitoring</button>
 		<br>
 	  </td>
   </tr>
-</table> 
+</table>
+
 
 
 <script type="text/javascript" src="scriptGUI.js"> </script>

@@ -18,7 +18,7 @@
 
 
 void sendGETresponse(int fd, char strFilePath[], char strResponse[]);
-void sendPUTresponse(int fd, char strFilePath[], char strBody[], char strResponse[]);
+void handlePUTrequest(int fd, char strFilePath[], char ptrBuffer[], int iBytesRead, char strResponse[]);
 void sendHEADresponse(int fd, char strFilePath[], char strResponse[]);
 //void report(struct sockaddr_in *serverAddress);
 
@@ -29,6 +29,8 @@ char HTTP_200HEADER[] = "HTTP/1.1 200 Ok\r\nConnection: close\r\n";
 char HTTP_201HEADER[] = "HTTP/1.1 201 CREATED\r\nConnection: close\r\n";
 char HTTP_404HEADER[] = "HTTP/1.1 404 Not Found\r\nConnection: close\r\n";
 char HTTP_400HEADER[] = "HTTP/1.1 400 Bad request\r\nConnection: close\r\n";
+
+char aBuffer[512] = {0};
 
 int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
 {
@@ -82,11 +84,10 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
         
         if(pid == 0)
         {
-            char  buffer[30000] = {0};
-            char* ptrBuffer = &buffer[0];
+            char* ptrBuffer = &aBuffer[0];
             
-            int iBytesRead = read(clientSocket, ptrBuffer, 30000);
-            printf("\nClient message of %d bytes:\n%s\n", iBytesRead, buffer);
+            int iBytesRead = read(clientSocket, ptrBuffer, 500);
+            printf("\nClient message of %d bytes:\n%s\n", iBytesRead, aBuffer);
             
             if (iBytesRead == 0)
             {
@@ -111,7 +112,7 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
             strncpy(strHTTP_requestPath, ptrBuffer, pch-ptrBuffer);
             printf("Client asked for path: %s\n", strHTTP_requestPath);
             
-            // Parse Request extension
+            // Identify extension
             char strHTTPreqExt[200] = {0};
 			pch = strrchr(strHTTP_requestPath, '.');
             if (pch != NULL) strcpy(strHTTPreqExt, pch+1);
@@ -334,17 +335,10 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
             }
             else if (!strcmp(strHTTP_requestMethod, "PUT"))
             {
-				// search for body
-				ptrBuffer = strstr(buffer, "\r\n\r\n");
-				ptrBuffer +=4;
-				
-				if (ptrBuffer)
-				{
-                    sprintf(strFilePath, ".%s", strHTTP_requestPath);
-					sprintf(strResponse, "%s", HTTP_201HEADER);
-					
-                    sendPUTresponse(clientSocket, strFilePath, ptrBuffer, strResponse);
-				}
+                sprintf(strFilePath, ".%s", strHTTP_requestPath);
+                sprintf(strResponse, "%s", HTTP_201HEADER);
+
+                handlePUTrequest(clientSocket, strFilePath, ptrBuffer, iBytesRead, strResponse);
             }
             close(clientSocket);
         }
@@ -454,8 +448,42 @@ void sendHEADresponse(int fdSocket, char strFilePath[], char strResponse[])
 }
 
 
-void sendPUTresponse(int fdSocket, char strFilePath[], char strBody[], char strResponse[])
+void handlePUTrequest(int fdSocket, char strFilePath[], char ptrBuffer[], int iBytesRead, char strResponse[])
 {
+    int iContentLength = 0;
+    char* pch = strcasestr(ptrBuffer, "Content-Length: ");
+    if (!pch)
+    {
+   		sprintf(strResponse, "%s", HTTP_400HEADER);
+		write(fdSocket, strResponse, strlen(strResponse));
+		
+        printf("\nCannot save file path : %s, internal error\n", strFilePath);
+        printf("Response:\n%s\n", strResponse); 
+        
+        return;
+    }
+
+    ptrBuffer = pch + 16;   // "Content-Length: "
+
+    iContentLength = atoi(ptrBuffer);
+    printf("Content-Length: %d\n", iContentLength);
+    
+    // search for body
+    char *strBody;
+    strBody = strstr(ptrBuffer, "\r\n\r\n");
+    if (!strBody)
+    {
+   		sprintf(strResponse, "%s", HTTP_400HEADER);
+		write(fdSocket, strResponse, strlen(strResponse));
+		
+        printf("\nCannot save file path : %s, internal error\n", strFilePath);
+        printf("Response:\n%s\n", strResponse); 
+        
+        return;
+    }
+        
+    strBody +=4;
+    
 	int fdFile = open(strFilePath, O_WRONLY|O_CREAT|O_TRUNC, 0666);
     if (fdFile < 0)
     {
@@ -468,15 +496,8 @@ void sendPUTresponse(int fdSocket, char strFilePath[], char strBody[], char strR
         return;
     }
     
-    printf("\nResponse:\n%s\n", strResponse); 
-    int iRes = write(fdSocket, strResponse, strlen(strResponse));
-    if (iRes < 0)
-    {
-        printf("\nCannot write to client socket with error %d\n", iRes);
-        return;
-	}
-    
-    iRes = write(fdFile, strBody, strlen(strBody));
+    int iBodyLen = iBytesRead - (strBody - aBuffer);
+    int iRes = write(fdFile, strBody, iBodyLen);
     if (iRes < 0)
     {
         printf("\nCannot write to file %s with error %d\n", strFilePath, fdFile);
@@ -484,7 +505,50 @@ void sendPUTresponse(int fdSocket, char strFilePath[], char strBody[], char strR
         return;
     }
     
+    if (iBodyLen < iContentLength)
+    {
+        iContentLength -= iBodyLen;
+        
+        while(iContentLength > 0)
+        {
+            memset(aBuffer, 0, 512);
+            int iRead = read(fdSocket, aBuffer, 500);
+            printf("\nClient message of %d bytes:\n%s\n", iRead, aBuffer);
+            
+            if (iRead == 0)
+            {
+				printf("Client closed connection prematurely\n");
+				return;
+			}
+
+            int done_bytes = write(fdFile, aBuffer, iRead);
+            if (done_bytes < 0)
+            {
+                printf("\nCannot write to file %s with error %d\n", strFilePath, done_bytes);
+                
+                return;
+            }
+            else if (done_bytes != iRead)
+            {
+                printf("\nCannot write to file %s: internal error\n", strFilePath);
+                
+                return;
+            }
+              
+            iContentLength = iContentLength - done_bytes;
+        }
+	}
+    
     close(fdFile);
+    
+    printf("\nResponse:\n%s\n", strResponse); 
+    iRes = write(fdSocket, strResponse, strlen(strResponse));
+    if (iRes < 0)
+    {
+        printf("\nCannot write to client socket with error %d\n", iRes);
+        return;
+	}
+
 }
 
 

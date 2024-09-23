@@ -140,6 +140,12 @@
         // wait to be able to calulcate GUI dependant variables correctly
         await DisableInactiveDevices();
         
+        $("idBtnSaveConf").disabled = false;
+        $("idBtnLoadConf").disabled = false;
+        $("idBtnSaveLog").disabled  = false;
+        $("idBtnStart").disabled    = false;
+        $("idBtnStop").disabled     = false;
+        
 		InitGUIparamsFromData();
 		
 		// handles the case when page remembers checkbox selection after refresh
@@ -292,6 +298,11 @@
 		$("idBARA").disabled  = true;
 		$("idBARA2").disabled = true;
 		$("idFOA").disabled   = true;
+
+		$("idBtnSaveConf").disabled = true;
+		$("idBtnLoadConf").disabled = true;
+		$("idBtnSaveLog").disabled  = true;
+
 		    
 		aPointsTemp  = [];
 		aPointsBaro  = [];
@@ -317,9 +328,13 @@
 			clearInterval(idInterval);
 			idInterval = -1;
 			
-			$("idBARA").disabled  = false;
-			$("idBARA2").disabled = false;
-			$("idFOA").disabled   = false;
+			$("idBARA").disabled  = ($("idBARA").dataset.userInfo === "disabled");  // set the state reported during init
+			$("idBARA2").disabled = ($("idBARA2").dataset.userInfo === "disabled"); // set the state reported during init
+			$("idFOA").disabled   = ($("idFOA").dataset.userInfo === "disabled");   // set the state reported during init
+            
+            $("idBtnSaveConf").disabled = false;
+            $("idBtnLoadConf").disabled = false;
+            $("idBtnSaveLog").disabled  = false;
 		}
 	}
 	

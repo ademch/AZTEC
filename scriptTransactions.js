@@ -7,7 +7,10 @@
             const response = await fetch('http://localhost:8081/BARAconnected1');
             const summary  = await response.text();
             
-            $("idBARA").checked = (summary === "1");
+            $("idBARA").checked  = (summary === "1");
+            $("idBARA").disabled = (summary === "0");
+            
+            $("idBARA").dataset.userInfo = (summary === "0") ? "disabled" : "enabled";
         }
         catch (error)
         {
@@ -19,7 +22,10 @@
             const response = await fetch('http://localhost:8081/BARAconnected2');
             const summary  = await response.text();
             
-            $("idBARA2").checked = (summary === "1");
+            $("idBARA2").checked  = (summary === "1");
+            $("idBARA2").disabled = (summary === "0");
+
+            $("idBARA2").dataset.userInfo = (summary === "0") ? "disabled" : "enabled";
         }
         catch (error)
         {
@@ -31,7 +37,11 @@
             const response = await fetch('http://localhost:8081/FOAconnected');
             const summary  = await response.text();
             
-            $("idFOA").checked = (summary === "1");
+            $("idFOA").checked  = (summary === "1");
+            $("idFOA").disabled = (summary === "0");
+            
+            $("idFOA").dataset.userInfo = (summary === "0") ? "disabled" : "enabled";
+
         }
         catch (error)
         {
