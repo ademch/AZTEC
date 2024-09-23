@@ -11,13 +11,13 @@
             // if there is data collected ignore entity checkbox
             if (aPointsTemp.length > 0) {
                 arrayOfEntities.push(aPointsTemp);
-                arrayOfEntityNames.push("Temp_1");
+                arrayOfEntityNames.push("Temp A,°C");
             }
             
             // if there is data collected ignore entity checkbox
             if (aPointsBaro.length > 0) {
                 arrayOfEntities.push(aPointsBaro);
-                arrayOfEntityNames.push("Baro_1");
+                arrayOfEntityNames.push("Baro A,mBar");
             }
         }
    		if ($("idBARA2").disabled == false)
@@ -25,13 +25,13 @@
             // if there is data collected ignore entity checkbox
             if (aPointsTemp2.length > 0) {
                 arrayOfEntities.push(aPointsTemp2);
-                arrayOfEntityNames.push("Temp_2");
+                arrayOfEntityNames.push("Temp B,°C");
             }
             
             // if there is data collected ignore entity checkbox
             if (aPointsBaro2.length > 0) {
                 arrayOfEntities.push(aPointsBaro2);
-                arrayOfEntityNames.push("Baro_2");
+                arrayOfEntityNames.push("Baro B,mBar");
             }
         }
    		if ($("idFOA").disabled == false)
@@ -39,22 +39,22 @@
             // if there is data collected ignore entity checkbox
             if (aPointsThermocouple.length > 0) {
                 arrayOfEntities.push(aPointsThermocouple);
-                arrayOfEntityNames.push("Thermocouple");
+                arrayOfEntityNames.push("Thermocouple,mV");
             }
             // if there is data collected ignore entity checkbox
             if (aPointsThermistorV.length > 0) {
                 arrayOfEntities.push(aPointsThermistorV);
-                arrayOfEntityNames.push("ThermistorV");
+                arrayOfEntityNames.push("ThermistorV,V");
             }
             // if there is data collected ignore entity checkbox
             if (aPointsThermistorR.length > 0) {
                 arrayOfEntities.push(aPointsThermistorR);
-                arrayOfEntityNames.push("ThermistorR");
+                arrayOfEntityNames.push("ThermistorR,Ω");
             }
             // if there is data collected ignore entity checkbox
             if (aPointsFlux.length > 0) {
                 arrayOfEntities.push(aPointsFlux);
-                arrayOfEntityNames.push("Flux");
+                arrayOfEntityNames.push("Flux,W/m²");
             }
         }
 
