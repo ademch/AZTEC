@@ -140,8 +140,8 @@ public:
 
 	ADS1256();
 
-	int  PinConfigStart();
-	void PinConfigExit();
+	static int  PinConfigStart();
+	static void PinConfigExit();
 
 	uint8_t Init(void);
 

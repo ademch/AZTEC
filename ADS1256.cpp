@@ -358,6 +358,8 @@ float ADS1256::GetFlux(float& fThCvoltage, float& fThR)
 // -8388608 to 8388607
 int ADS1256::ReadOffsetCalibration()
 {
+	if (!bPresentOnBus) return 0;
+
     int32_t value = 0;
     uint8_t buf[3] = {0,0,0};
 
@@ -385,6 +387,8 @@ int ADS1256::ReadOffsetCalibration()
 // 0 to 16777215
 unsigned int ADS1256::ReadScalingCalibration()
 {
+   	if (!bPresentOnBus) return 0;
+    
     int32_t value = 0;
     uint8_t buf[3] = {0,0,0};
 
