@@ -30,7 +30,7 @@ char HTTP_201HEADER[] = "HTTP/1.1 201 CREATED\r\nConnection: close\r\n";
 char HTTP_404HEADER[] = "HTTP/1.1 404 Not Found\r\nConnection: close\r\n";
 char HTTP_400HEADER[] = "HTTP/1.1 400 Bad request\r\nConnection: close\r\n";
 
-char aBuffer[512] = {0};
+char aBuffer[4096] = {0};
 
 int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
 {
@@ -86,7 +86,8 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
         {
             char* ptrBuffer = &aBuffer[0];
             
-            int iBytesRead = read(clientSocket, ptrBuffer, 500);
+            memset(aBuffer, 0, 4096);
+            int iBytesRead = read(clientSocket, ptrBuffer, 4000);
             printf("\nClient message of %d bytes:\n%s\n", iBytesRead, aBuffer);
             
             if (iBytesRead == 0)
@@ -511,8 +512,8 @@ void handlePUTrequest(int fdSocket, char strFilePath[], char ptrBuffer[], int iB
         
         while(iContentLength > 0)
         {
-            memset(aBuffer, 0, 512);
-            int iRead = read(fdSocket, aBuffer, 500);
+            memset(aBuffer, 0, 4096);
+            int iRead = read(fdSocket, aBuffer, 4000);
             printf("\nClient message of %d bytes:\n%s\n", iRead, aBuffer);
             
             if (iRead == 0)
@@ -609,9 +610,3 @@ void setHttpHeader_other(char httpHeader[], char *path)
     printf("\n\n\tServer listening on http://%s:%s\n", hostBuffer, serviceBuffer);
 }
 */
-
-
-
-
-
-
