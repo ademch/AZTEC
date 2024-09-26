@@ -5,6 +5,8 @@
         let arrayOfEntityNames = [];
         let arrayOfEntities = [];
         
+        const ipAddress = window.location.hostname;
+        
         // if device connected
    		if ($("idBARA").disabled == false)
         {
@@ -110,7 +112,7 @@
             let localSeconds = String(timeNow.getSeconds()).padStart(2, 0);
         
         let timeNowStr = `${localDate}-${localMonth}-${localYear}_${localHours}-${localMinutes}-${localSeconds}`;
-        fetch('http://localhost:8081/log/' + timeNowStr + '.txt',
+        fetch(`http://${ipAddress}:8081/log/` + timeNowStr + '.txt',
 	    {
 		    method  : 'PUT',
 		    headers : new Headers({'content-type': 'application/json'}),
@@ -127,8 +129,10 @@
     function SaveConfiguration()
 	{
 		if (confirm("Do you want to update saved configuration?") == false) return;
+        
+        const ipAddress = window.location.hostname;
 		
-	    fetch('http://localhost:8081/config.json',
+	    fetch(`http://${ipAddress}:8081/config.json`,
 	    {
 		    method  : 'PUT',
 		    headers : new Headers({'content-type': 'application/json'}),
@@ -211,11 +215,13 @@
 
 	async function FetchConfiguration()
 	{
+        const ipAddress = window.location.hostname;
+        
 		if (confirm("Do you want to load saved configuration?\nThe current configuration will be overwritten") == false) return;
 
 		try
 		{
-			const response = await fetch('http://localhost:8081/config.json');
+			const response = await fetch(`http://${ipAddress}:8081/config.json`);
             if (!response.ok)
             {
                 alert("No saved configuraton found.\nYou need to save configuration first");

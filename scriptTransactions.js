@@ -2,9 +2,11 @@
 
 	async function DisableInactiveDevices()
 	{
+        const ipAddress = window.location.hostname;
+        
         try
         {
-            const response = await fetch('http://localhost:8081/BARAconnected1');
+            const response = await fetch(`http://${ipAddress}:8081/BARAconnected1`);
             const summary  = await response.text();
             
             $("idBARA").checked  = (summary === "1");
@@ -19,7 +21,7 @@
         
         try
         {
-            const response = await fetch('http://localhost:8081/BARAconnected2');
+            const response = await fetch(`http://${ipAddress}:8081/BARAconnected2`);
             const summary  = await response.text();
             
             $("idBARA2").checked  = (summary === "1");
@@ -34,7 +36,7 @@
         
         try
         {
-            const response = await fetch('http://localhost:8081/FOAconnected');
+            const response = await fetch(`http://${ipAddress}:8081/FOAconnected`);
             const summary  = await response.text();
             
             $("idFOA").checked  = (summary === "1");
@@ -51,7 +53,9 @@
 
 	function PingHTTPserver()
 	{
-	    fetch('http://localhost:8081/',
+        const ipAddress = window.location.hostname;
+
+	    fetch(`http://${ipAddress}:8081/`,
 	    {
 		    method  : 'HEAD',
 	    })
@@ -80,13 +84,15 @@
 		let fThermVoltage;
 		let fThermResistance;
 		let fFlux;
+        
+        const ipAddress = window.location.hostname;
 
 		
 		if ($("idBARA").checked == true)
 		{
 			try
 			{
-				const response = await fetch('http://localhost:8081/BARAtemperature1');
+				const response = await fetch(`http://${ipAddress}:8081/BARAtemperature1`);
 				const summary  = await response.text();
 				console.log(summary);
 				
@@ -107,7 +113,7 @@
 			
 			try
 			{
-				const response = await fetch('http://localhost:8081/BARApressure1');
+				const response = await fetch(`http://${ipAddress}:8081/BARApressure1`);
 				const summary  = await response.text();
 				console.log(summary);
 				
@@ -134,7 +140,7 @@
 		{
 			try
 			{
-				const response = await fetch('http://localhost:8081/BARAtemperature2');
+				const response = await fetch(`http://${ipAddress}:8081/BARAtemperature2`);
 				const summary  = await response.text();
 				console.log(summary);
 				
@@ -155,7 +161,7 @@
 			
 			try
 			{
-				const response = await fetch('http://localhost:8081/BARApressure2');
+				const response = await fetch(`http://${ipAddress}:8081/BARApressure2`);
 				const summary  = await response.text();
 				console.log(summary);
 				
@@ -182,7 +188,7 @@
 		{
 			try
 			{
-				const response = await fetch('http://localhost:8081/FOAthermocouple');
+				const response = await fetch(`http://${ipAddress}:8081/FOAthermocouple`);
 				const summary  = await response.text();
 				console.log(summary);
 				
@@ -204,7 +210,7 @@
             
 			try
 			{
-				const response = await fetch('http://localhost:8081/FOAthermistorV');
+				const response = await fetch(`http://${ipAddress}:8081/FOAthermistorV`);
 				const summary  = await response.text();
 				console.log(summary);
 				
@@ -225,7 +231,7 @@
             
 			try
 			{
-				const response = await fetch('http://localhost:8081/FOAthermistorR');
+				const response = await fetch(`http://${ipAddress}:8081/FOAthermistorR`);
 				const summary  = await response.text();
 				console.log(summary);
 				
@@ -249,8 +255,9 @@
 				const K20    = 3.11;     // mV*m^2 / kW
                 const alpha  = 0.0166;
                 const Rconst = 177.0;    // Ohm
+                const Vzero  = 10.041;   // zero level
                 
-                fFlux  = ((fThCvoltageMV-10.0) / (1.0 + alpha * (fThermResistance - Rconst))) / K20;
+                fFlux  = ((fThCvoltageMV - Vzero) / (1.0 + alpha * (fThermResistance - Rconst))) / K20;
                 fFlux *= 1000;           // convert kW to Watts
 				console.log(fFlux);
 				
