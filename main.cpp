@@ -19,6 +19,11 @@ MS5611  ms5611_2(MS5611_SAMPLES_4096, MS5611_ADDRESS_2);
 ADS1256 ads1256;
 
 
+extern bool bTerminateThread;
+
+pthread_t thread;
+void* samplingThreadFunc(void* ptr);
+
 
 void sigintHandler(int s)
 {
@@ -28,8 +33,13 @@ void sigintHandler(int s)
     
     MS5611::closeBus();
     
+    bTerminateThread = true;
+    pthread_join(thread, NULL);
+
     exit(EXIT_SUCCESS);
 }
+
+
 
 
 int main(int argc, char *argv[])
@@ -49,7 +59,7 @@ int main(int argc, char *argv[])
 	//~ int iScaleCoef = ads1256.ReadScalingCalibration();
 	//~ printf("Calibration scale coefficient: %d\n", iScaleCoef);
 	
-			//~ ads1256.SelfCalibrate();
+    //~ ads1256.SelfCalibrate();
 			
 	//~ iOffsetCoef = ads1256.ReadOffsetCalibration();
 	//~ printf("Calibration offset coefficient: %d\n", iOffsetCoef);
@@ -87,7 +97,7 @@ int main(int argc, char *argv[])
     else
 		printf("I2C bus opened successfully\n");
     
-	_delayMS(10);
+_delayMS(100);
     
     float fTemp, fPressure;
     
@@ -96,7 +106,7 @@ int main(int argc, char *argv[])
 	else
 		printf("MS5611 0x%X reset successfully\n", MS5611_ADDRESS_1);
 	
-    _delayMS(100);
+_delayMS(100);
 
     ms5611_1.readPROMcoefficients();
     
@@ -106,14 +116,14 @@ int main(int argc, char *argv[])
     fPressure = ms5611_1.readPressure();
     printf("    Pressure %f mBar\n", fPressure);
     
-	_delayMS(10);
+_delayMS(100);
     
 	if (ms5611_2.sendReset() < 0)
 		printf("MS5611 0x%X did not respond\n", MS5611_ADDRESS_2);
 	else
 		printf("MS5611 0x%X reset successfully\n", MS5611_ADDRESS_2);
 	
-    _delayMS(100);
+_delayMS(100);
 
     ms5611_2.readPROMcoefficients();
     
@@ -122,6 +132,15 @@ int main(int argc, char *argv[])
 
     fPressure = ms5611_2.readPressure();
     printf("    Pressure %f mBar\n", fPressure);
+    
+_delayMS(100);
+
+    // Launch sampling thread
+    if (pthread_create( &thread, NULL, samplingThreadFunc, NULL)) {
+        printf("Failed to launch sampling thread\n");
+    }
+
+_delayMS(100);
 
     // Proceed to answer HTTP requests  
     CreateHTTPserver(&ms5611_1, &ms5611_2, &ads1256);

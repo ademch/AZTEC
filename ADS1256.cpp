@@ -345,15 +345,15 @@ float ADS1256::GetThermistorResistance()
 
 // Returns ThC and ThR values to sample once
 // Do not use, client calculates by itself !!
-float ADS1256::GetFlux(float& fThCvoltage, float& fThR)
-{
-    if (!bPresentOnBus) return 0.0f;
+//~ float ADS1256::GetFlux(float& fThCvoltage, float& fThR)
+//~ {
+    //~ if (!bPresentOnBus) return 0.0f;
     
-	fThCvoltage = GetThermocoupleVoltage();
-	fThR        = GetThermistorResistance();
+	//~ fThCvoltage = GetThermocoupleVoltage();
+	//~ fThR        = GetThermistorResistance();
 	
-	return ( (fThCvoltage*1000.0f) / (1.0f + 0.0166f * (fThR - 177.0f))) / 3.11f;
-}
+	//~ return ( (fThCvoltage*1000.0f) / (1.0f + 0.0166f * (fThR - 177.0f))) / 3.11f;
+//~ }
 
 // -8388608 to 8388607
 int ADS1256::ReadOffsetCalibration()

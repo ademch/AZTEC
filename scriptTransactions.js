@@ -252,14 +252,11 @@
 			
 			try
 			{
-				const K20    = 3.11;     // mV*m^2 / kW
-                const alpha  = 0.0166;
-                const Rconst = 177.0;    // Ohm
-                const Vzero  = 10.041;   // zero level
-                
-                fFlux  = ((fThCvoltageMV - Vzero) / (1.0 + alpha * (fThermResistance - Rconst))) / K20;
-                fFlux *= 1000;           // convert kW to Watts
-				console.log(fFlux);
+				const response = await fetch(`http://${ipAddress}:8081/FOAflux`);
+				const summary  = await response.text();
+				console.log(summary);
+				
+				fFlux = parseFloat(summary);
 				
 				$("idFluxLabel").textContent = "Flux: " + fFlux.toFixed(2) + " W/m²";
 				

@@ -154,7 +154,7 @@ public:
 	
 	float GetThermocoupleVoltage();
 	
-	float GetFlux(float& fThCvoltage, float& fThR);
+	//float GetFlux(float& fThCvoltage, float& fThR);
 	
 	void SelfCalibrate();
 	

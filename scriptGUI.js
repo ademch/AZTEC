@@ -142,7 +142,6 @@
         
         $("idBtnSaveConf").disabled = false;
         $("idBtnLoadConf").disabled = false;
-        $("idBtnSaveLog").disabled  = false;
         $("idBtnStart").disabled    = false;
         $("idBtnStop").disabled     = false;
         
@@ -301,7 +300,6 @@
 
 		$("idBtnSaveConf").disabled = true;
 		$("idBtnLoadConf").disabled = true;
-		$("idBtnSaveLog").disabled  = true;
 
 		    
 		aPointsTemp  = [];
@@ -334,7 +332,6 @@
             
             $("idBtnSaveConf").disabled = false;
             $("idBtnLoadConf").disabled = false;
-            $("idBtnSaveLog").disabled  = false;
 		}
 	}
 	

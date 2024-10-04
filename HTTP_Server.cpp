@@ -12,9 +12,11 @@
 #include <errno.h>
 
 #include "HTTP_Server.h"
-
+#include "ThreadSampling.h"
 
 #define PORT 8081
+
+extern SampledValues sampledValues;
 
 
 void sendGETresponse(int fd, char strFilePath[], char strResponse[]);
@@ -26,7 +28,8 @@ void sendHEADresponse(int fd, char strFilePath[], char strResponse[]);
 //https://www.linuxhowtos.org/C_C++/socket.htm
 
 char HTTP_200HEADER[] = "HTTP/1.1 200 Ok\r\nConnection: close\r\n";
-char HTTP_201HEADER[] = "HTTP/1.1 201 CREATED\r\nConnection: close\r\n";
+char HTTP_201HEADER[] = "HTTP/1.1 201 Created\r\nConnection: close\r\n";
+char HTTP_202HEADER[] = "HTTP/1.1 202 Accepted\r\nConnection: close\r\n";
 char HTTP_404HEADER[] = "HTTP/1.1 404 Not Found\r\nConnection: close\r\n";
 char HTTP_400HEADER[] = "HTTP/1.1 400 Bad request\r\nConnection: close\r\n";
 
@@ -154,9 +157,9 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
                     
                     float fTemp = 0.0f;
                     if (iChannel == 1)
-                        fTemp = ms5611_1->readTemperature();
+                        fTemp = sampledValues.fTemp1;
                     else if (iChannel == 2)
-                        fTemp = ms5611_2->readTemperature();
+                        fTemp = sampledValues.fTemp2;
                     
                     char strTemperature[20];
                     sprintf(strTemperature, "%f", fTemp);
@@ -175,9 +178,9 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
                     
                     float fPressure = 0.0f;
                     if (iChannel == 1)
-                        fPressure = ms5611_1->readPressure();
+                        fPressure = sampledValues.fPressure1;
                     else if (iChannel == 2)
-                        fPressure = ms5611_2->readPressure();
+                        fPressure = sampledValues.fPressure2;
                     
                     char strPressure[20];
                     sprintf(strPressure, "%f", fPressure);
@@ -222,7 +225,7 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
                 }                       
                 else if(!strcmp(strHTTP_requestPath, "/FOAthermocouple"))
                 {
-					float fValue = ads1256->GetThermocoupleVoltage();
+					float fValue = sampledValues.fThermocoupleVoltage;
 					
                     char strVoltage[20];
                     sprintf(strVoltage, "%f", fValue);
@@ -236,7 +239,7 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
                 }
                 else if(!strcmp(strHTTP_requestPath, "/FOAthermistorV"))
                 {
-					float fValue = ads1256->GetThermistorVoltage();
+					float fValue = sampledValues.fThermistorVoltage;
 					
                     char strVoltage[20];
                     sprintf(strVoltage, "%f", fValue);
@@ -250,7 +253,7 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
                 }
                 else if(!strcmp(strHTTP_requestPath, "/FOAthermistorR"))
                 {
-					float fValue = ads1256->GetThermistorResistance();
+					float fValue = sampledValues.fThermistorResistance;
 					
                     char strVoltage[20];
                     sprintf(strVoltage, "%f", fValue);
@@ -264,11 +267,7 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
                 }
                 else if(!strcmp(strHTTP_requestPath, "/FOAflux"))
                 {
-                    // not used today, client asks for component values and does the math
-                    // This saves from adc jerking
-					float fThCvoltage = 0.0f;
-					float fThR = 0.0f;
-					float fValue = ads1256->GetFlux(fThCvoltage, fThR);
+					float fValue = sampledValues.fFlux;
 					
                     char strVoltage[20];
                     sprintf(strVoltage, "%f", fValue);
