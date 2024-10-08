@@ -108,6 +108,7 @@ void SaveDataLog(FILE* fdFile)
     fsync(fd);
 }
 
+extern const char* WORKD_PATH;
 
 void *samplingThreadFunc(void* ptr)
 {
@@ -115,7 +116,9 @@ void *samplingThreadFunc(void* ptr)
     
     printf("\nMonitoring thread started\n");
     
-    FILE* fdFile = SaveDataLogStart("./log/Logfile.txt");
+    char filePath[500] = {0};
+    sprintf(filePath, "%s/log/Logfile.txt", WORKD_PATH);
+    FILE* fdFile = SaveDataLogStart(filePath);
     
     if (!fdFile) return NULL;
     

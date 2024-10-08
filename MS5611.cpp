@@ -200,7 +200,7 @@ uint32_t MS5611::readRegister24(unsigned char reg)
 	// prepare for read
 	if (write(iDev, &reg, 1) != 1)
 	{
-		printf("Failed to write to the i2c bus\n");
+		printf("Failed to write to the i2c 0x%02x device\n", address);
 		return 0;
 	}
     
@@ -208,7 +208,7 @@ uint32_t MS5611::readRegister24(unsigned char reg)
     unsigned char buf[3];
 	if (read(iDev, buf, 3) != 3)
 	{
-		printf("Failed to read from the i2c bus\n");
+		printf("Failed to read from the i2c 0x%02x device\n", address);
 		return 0;
 	}
 	
@@ -224,7 +224,7 @@ int MS5611::sendCommand(unsigned char reg)
 
 	if (write(iDev, &reg, 1) != 1)
 	{
-		printf("Failed to write to the i2c bus\n");
+		printf("Failed to write to the i2c 0x%02x device\n", address);
 		return -1;
 	}
 

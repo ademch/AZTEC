@@ -40,8 +40,6 @@ void sigintHandler(int s)
 }
 
 
-
-
 int main(int argc, char *argv[])
 {
 	signal(SIGINT, sigintHandler);
@@ -73,10 +71,10 @@ int main(int argc, char *argv[])
 	ads1256.WriteScalingCalibration(3846000);	 // recent 3843750 // vs 3863056 factory // FLuke 3855000
 			
 	int iOffsetCoef = ads1256.ReadOffsetCalibration();
-	printf("Calibration offset coefficient: %d\n", iOffsetCoef);
+	if (iOffsetCoef != 0) printf("Calibration offset coefficient: %d\n", iOffsetCoef);
 
 	int iScaleCoef = ads1256.ReadScalingCalibration();
-	printf("Calibration scale coefficient: %d\n", iScaleCoef);
+	if (iScaleCoef != 0) printf("Calibration scale coefficient: %d\n", iScaleCoef);
 			
 
 	// while(1)
@@ -111,10 +109,10 @@ _delayMS(100);
     ms5611_1.readPROMcoefficients();
     
     fTemp = ms5611_1.readTemperature();
-    printf("    Temperature %f C\n", fTemp);
+    if (fTemp > 0) printf("    Temperature %f C\n", fTemp);
 
     fPressure = ms5611_1.readPressure();
-    printf("    Pressure %f mBar\n", fPressure);
+    if (fPressure > 0) printf("    Pressure %f mBar\n", fPressure);
     
 _delayMS(100);
     
@@ -128,10 +126,10 @@ _delayMS(100);
     ms5611_2.readPROMcoefficients();
     
     fTemp = ms5611_2.readTemperature();
-    printf("    Temperature %f C\n", fTemp);
+    if (fTemp > 0) printf("    Temperature %f C\n", fTemp);
 
     fPressure = ms5611_2.readPressure();
-    printf("    Pressure %f mBar\n", fPressure);
+    if (fPressure > 0) printf("    Pressure %f mBar\n", fPressure);
     
 _delayMS(100);
 
