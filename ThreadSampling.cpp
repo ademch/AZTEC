@@ -37,7 +37,7 @@ FILE* SaveDataLogStart(const char* strFilePath)
     
     fprintf(fdFile, "\nStarted log on %d-%02d-%02d\n",
             lclTime->tm_year + 1900,
-            lclTime->tm_mon,
+            lclTime->tm_mon+1,
             lclTime->tm_mday);
 
     fprintf(fdFile, "%s\t", "Timestamp");
