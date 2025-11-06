@@ -65,6 +65,7 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
     if (listen(connectionSocket, 10) < 0)
     {
         perror("socket listen failed\n");
+        close(connectionSocket);
         exit(EXIT_FAILURE);
     }
     
@@ -73,7 +74,7 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
     
     while(1)
     {
-        printf("\n+++++++ Waiting for a new connection ++++++++\n\n");
+        printf("\n+++++++ Main thread: Waiting for a new connection ++++++++\n\n");
         if ((clientSocket = accept(connectionSocket, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0)
         {
             perror("In accept");
@@ -82,13 +83,15 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
         
         //Create child process to handle request from different client
         pid = 0;//fork();
-        if(pid < 0){
+        if (pid < 0) {
             perror("Error on fork");
             exit(EXIT_FAILURE);
         }
         
-        if(pid == 0)
+        if (pid == 0)
         {
+            // child process
+
             char* ptrBuffer = &aBuffer[0];
             
             memset(aBuffer, 0, 4096);
@@ -346,7 +349,9 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
         }
         else
         {
-            printf(">>>>>>>>>>Parent create child with pid: %d <<<<<<<<<", pid);
+            // parent process
+
+            printf(">>>>>>>>>>Child with pid: %d created<<<<<<<<<", pid);
             close(clientSocket);
         }
         
