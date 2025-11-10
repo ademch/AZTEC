@@ -6,10 +6,13 @@
 #include "MS5611.h"
 #include "Dev_config.h"
 #include "ADS1256.h"
+#include "DAC8552.h"
 
 #include "HTTP_Server.h"
 
 #include <signal.h>
+
+#include <math.h>
 
 
 using namespace std;
@@ -17,6 +20,7 @@ using namespace std;
 MS5611  ms5611_1(MS5611_SAMPLES_4096, MS5611_ADDRESS_1);
 MS5611  ms5611_2(MS5611_SAMPLES_4096, MS5611_ADDRESS_2);
 ADS1256 ads1256;
+DAC8552 dac8552;
 
 
 extern bool bTerminateThread;
@@ -30,7 +34,7 @@ void sigintHandler(int s)
 {
     printf("Caught signal %d\n", s);
     
-   	ads1256.PinConfigExit();
+   	PinConfigExit();
     
     MS5611::closeBus();
     
@@ -48,52 +52,71 @@ int main(int argc, char *argv[])
 {
 	signal(SIGINT, sigintHandler);
 	
-	ads1256.PinConfigStart();
+	PinConfigStart();
 	
-    printf("\nInitializing MS5611\n");
+    printf("\n* Initializing ADS1256...\n");
             
-    ads1256.Init();
-	
-	ads1256.ConfigADC(ADS1256_GAIN_1, ADS1256_25SPS);
-	
+        ads1256.Init();
+        
+        ads1256.ConfigADC(ADS1256_GAIN_1, ADS1256_25SPS);
+        
 
-	//~ int iOffsetCoef = ads1256.ReadOffsetCalibration();
-	//~ printf("Calibration offset coefficient: %d\n", iOffsetCoef);
+        //~ int iOffsetCoef = ads1256.ReadOffsetCalibration();
+        //~ printf("Calibration offset coefficient: %d\n", iOffsetCoef);
 
-	//~ int iScaleCoef = ads1256.ReadScalingCalibration();
-	//~ printf("Calibration scale coefficient: %d\n", iScaleCoef);
-	
-    //~ ads1256.SelfCalibrate();
-			
-	//~ iOffsetCoef = ads1256.ReadOffsetCalibration();
-	//~ printf("Calibration offset coefficient: %d\n", iOffsetCoef);
+        //~ int iScaleCoef = ads1256.ReadScalingCalibration();
+        //~ printf("Calibration scale coefficient: %d\n", iScaleCoef);
+        
+        //~ ads1256.SelfCalibrate();
+                
+        //~ iOffsetCoef = ads1256.ReadOffsetCalibration();
+        //~ printf("Calibration offset coefficient: %d\n", iOffsetCoef);
 
-	//~ iScaleCoef = ads1256.ReadScalingCalibration();
-	//~ printf("Calibration scale coefficient: %d\n", iScaleCoef);
-	
-			
-	// Calibration values acquired from physical calibration
-	ads1256.WriteOffsetCalibration(-803);
-	ads1256.WriteScalingCalibration(3846000);	 // recent 3843750 // vs 3863056 factory // FLuke 3855000
-			
-	int iOffsetCoef = ads1256.ReadOffsetCalibration();
-	if (iOffsetCoef != 0) printf("Calibration offset coefficient: %d\n", iOffsetCoef);
+        //~ iScaleCoef = ads1256.ReadScalingCalibration();
+        //~ printf("Calibration scale coefficient: %d\n", iScaleCoef);
+        
+                
+        // Calibration values acquired from physical calibration
+        ads1256.WriteOffsetCalibration(-803);
+        ads1256.WriteScalingCalibration(3846000);	 // recent 3843750 // vs 3863056 factory // FLuke 3855000
+                
+        int iOffsetCoef = ads1256.ReadOffsetCalibration();
+        if (iOffsetCoef != 0) printf("Calibration offset coefficient: %d\n", iOffsetCoef);
 
-	int iScaleCoef = ads1256.ReadScalingCalibration();
-	if (iScaleCoef != 0) printf("Calibration scale coefficient: %d\n", iScaleCoef);
-			
-
-	// while(1)
-	// {
-	//	float fValue;
-	//		
-	//	fValue = ads1256.GetChannelValue(ADS1256_AIN4P_AINCOMN);
-	//	printf("ADC%d value %fv\n", 3, fValue);
+        int iScaleCoef = ads1256.ReadScalingCalibration();
+        if (iScaleCoef != 0) printf("Calibration scale coefficient: %d\n", iScaleCoef);
+        
+        
+        // while(1)
+        // {
+        //	float fValue;
+        //		
+        //	fValue = ads1256.GetChannelValue(ADS1256_AIN4P_AINCOMN);
+        //	printf("ADC%d value %fv\n", 3, fValue);
+            
+        //	delayMicroseconds(1000000);
+        //}
 		
-	//	delayMicroseconds(1000000);
-	//}
-		
-    printf("\n\n");
+      
+    printf("\n* Initializing DAC8552...\n");
+    
+        dac8552.SetChA_Voltage(1.4f);
+        if (!ads1256.IsConnected()) {
+            printf("Can not check DAC presence, because ADC has not been found\n");
+        }
+        else
+        {
+            if (fabs(ads1256.GetReferenceVoltage() - 1.4f) < 0.2)
+            {
+                printf("DAC found successfully\n");
+                dac8552.Init(true);
+            }
+            else
+                printf("DAC failed to respond\n");
+        }
+    
+    
+    printf("\n* Initializing MS5611...\n");
 	
     // Open I2C bus
     if (!MS5611::openBus())
@@ -147,7 +170,7 @@ _delayMS(100);
 _delayMS(100);
 
     // Proceed to answer HTTP requests  
-    CreateHTTPserver(&ms5611_1, &ms5611_2, &ads1256);
+    CreateHTTPserver(&ms5611_1, &ms5611_2, &ads1256, &dac8552);
     
     return 0;
 }

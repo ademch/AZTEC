@@ -39,7 +39,7 @@ char HTTP_400HEADER[] = "HTTP/1.1 400 Bad request\r\nConnection: close\r\n";
 
 char aBuffer[4096] = {0};
 
-int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
+int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256, DAC8552* dac8552)
 {
     int clientSocket, pid; 
     struct sockaddr_in address;
@@ -82,7 +82,7 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
         if (clientSocket == -1)
         {
             if (errno == EBADF) {
-                printf("Accept terminated on connectionSocket\n");
+                printf("Accept terminated after connectionSocket closed\n");
                 exit(EXIT_SUCCESS);
             }
             else {
@@ -228,7 +228,8 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
                 }
                 else if(!strcmp(strHTTP_requestPath, "/FOAconnected"))
                 {
-                    char strConnected[2] = {'1', 0};
+                    char strConnected[2] = {0, 0};
+                    strConnected[0] = (ads1256->IsConnected() && dac8552->IsConnected()) ? '1' : '0';
                     
                     sprintf(strResponse, "%sContent-Type: text/html\r\nContent-Length: %ld\r\n\r\n", HTTP_200HEADER, strlen(strConnected));
                     

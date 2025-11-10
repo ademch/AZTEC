@@ -113,7 +113,6 @@ typedef enum
 #define ADS1256_SYNC_PDWN_PIN   7	// P7 (bcm22)
 #define ADS1256_CS_PIN      	3	// P3 (bcm22)
 
-#define DAC8552_CS_PIN      	4	// P4 (bcm23)
 #define ADS1256_MOSI          	12
 #define ADS1256_MISO          	13
 #define ADS1256_CLK          	14
@@ -140,10 +139,7 @@ public:
 
 	ADS1256();
 
-	static int  PinConfigStart();
-	static void PinConfigExit();
-
-	uint8_t Init(void);
+	uint8_t Init();
 
 	void ConfigADC(ADS1256_GAIN gain, uint8_t drate);
 
@@ -151,6 +147,7 @@ public:
 	
 	float GetThermistorVoltage();
 	float GetThermistorResistance();
+    float GetReferenceVoltage();
 	
 	float GetThermocoupleVoltage();
 	

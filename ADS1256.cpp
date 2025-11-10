@@ -3,87 +3,12 @@
 #include "Dev_config.h"
 
 #include <unistd.h>
-#include <linux/spi/spidev.h>
-#include <wiringpi2/wiringPiSPI.h>
-
 
 
 ADS1256::ADS1256()
 {
     bPresentOnBus = false;
 }
-
-
-int ADS1256::PinConfigStart()
-{
-    // Step 1 Setup pin numbering table---------------------------------
-
-    if (wiringPiSetup() < 0)			// use wiringpi Pin numbering table
-    //if (wiringPiSetupGpio() < 0)		// use BCM2835 Pin number table
-    { 	
-        printf("wiringPi setup failed\n");
-        return 1;
-    }
-    else {
-        printf("wiringPi setup successful\n");
-    }
-
-    // Step 2: pins config----------------------------------------------
-
-    pinMode(ADS1256_RST_PIN,       	OUTPUT);	// defaults to INPUT pullup
-    pinMode(ADS1256_SYNC_PDWN_PIN, 	OUTPUT);	// defaults to INPUT pulldown, making the device to powerdown after 20 DRDY periods
-    pinMode(ADS1256_CS_PIN,        	OUTPUT);	// defaults to INPUT pullup
-    pinMode(ADS1256_DRDY_PIN,      	INPUT);		// defaults to INPUT pullup
-    pinMode(DAC8552_CS_PIN,        	OUTPUT);	// defaults to INPUT pullup
-
-   	pullUpDnControl(ADS1256_DRDY_PIN,   PUD_DOWN);	// pull down in order WaitDRDY to return when DEVICE is not connected
-
-   	DEV_gpio_write(ADS1256_RST_PIN,       1);
-   	DEV_gpio_write(ADS1256_CS_PIN,        1);
-   	DEV_gpio_write(DAC8552_CS_PIN,        1);
-
-    //~ pinMode(ADS1256_MOSI,    		OUTPUT);
-    //~ pinMode(ADS1256_MISO,    		INPUT);
-    //~ pinMode(ADS1256_CLK,    		OUTPUT);
-
-   	//~ DEV_gpio_write(ADS1256_MOSI,		  0);
-   	//~ DEV_gpio_write(ADS1256_CLK,           0);
-   	
-   	//~ pullUpDnControl(ADS1256_MISO, PUD_UP);
-
-    // Step 3: SPI init-------------------------------------------------
-
-	// channel: (odroid has only one 0 channel)
-	// speedHZ: 2MHz, , but gave errors
-	// SPI mode: 1
-	wiringPiSPISetupMode(0, 2000000, SPI_MODE_1);
-	//fdSPI = _wiringPiSPISetup();
-	
-    return 0;
-}
-
-
-void ADS1256::PinConfigExit()
-{
-	DEV_gpio_write(ADS1256_RST_PIN, 1);
-   	DEV_gpio_write(ADS1256_CS_PIN,  1);
-   	DEV_gpio_write(DAC8552_CS_PIN,  1);
-   	
-   	pinMode(ADS1256_RST_PIN,   		INPUT);
-    pinMode(ADS1256_SYNC_PDWN_PIN,  INPUT);
-    pinMode(ADS1256_CS_PIN,         INPUT);
-    pinMode(ADS1256_DRDY_PIN,  		INPUT);
-    pinMode(DAC8552_CS_PIN,    		INPUT);
-    
-    // power down ADS
-    pullUpDnControl(ADS1256_SYNC_PDWN_PIN, PUD_DOWN);
-    
-    
-    //~ pinMode(ADS1256_MOSI,          INPUT);
-    //~ // pinMode(ADS1256_MISO,       INPUT);
-    //~ pinMode(ADS1256_CLK,           INPUT);
-}
-
 
 
 uint8_t ADS1256::Init()
@@ -109,6 +34,42 @@ uint8_t ADS1256::Init()
     }
     
     return 0;
+}
+
+
+// Configure ADC gain and sampling speed
+void ADS1256::ConfigADC(ADS1256_GAIN gain, uint8_t drate)
+{
+	if (!bPresentOnBus) return;
+	
+    uint8_t registers[4] = {0,0,0,0};
+    
+    // Without buffer input impedance is 150 kOhm at 1x PGA
+    // With buffer input impedance is 80 MOhm
+    // Buffer works only for voltages lower than vdd-2v
+    registers[REG_STATUS] = ORDER_MSB_FIRST | ORDER_AUTO_CAL_DIS | ORDER_ABUFFER_EN;
+    registers[REG_MUX]    = ADS1256_AIN3_P | ADS1256_AINCOM_N;
+    registers[REG_ADCON]  = ADCON_CLK_OFF | ADCON_SENS_DTCT_OFF | gain;
+    registers[REG_DRATE]  = drate;
+
+    DEV_gpio_write(ADS1256_CS_PIN, 0);		// cs stays low during the whole command sequence
+		DEV_SPI_WriteByte(CMD_WREG | 0);	// address of the first register to be written
+		DEV_SPI_WriteByte(0x03);			// number of registers to be written minus 1
+		
+		DEV_SPI_WriteByte(registers[0]);
+		DEV_SPI_WriteByte(registers[1]);
+		DEV_SPI_WriteByte(registers[2]);
+		DEV_SPI_WriteByte(registers[3]);
+    DEV_gpio_write(ADS1256_CS_PIN, 1);
+
+    // wait until auto sampling comes back
+    WaitDRDY_();
+}
+
+
+bool ADS1256::IsConnected()
+{
+	return bPresentOnBus;
 }
 
 
@@ -219,35 +180,6 @@ uint8_t ADS1256::ReadChipID_()
     return id >> 4;
 }
 
-// Configure ADC gain and sampling speed
-void ADS1256::ConfigADC(ADS1256_GAIN gain, uint8_t drate)
-{
-	if (!bPresentOnBus) return;
-	
-    uint8_t registers[4] = {0,0,0,0};
-    
-    // Without buffer input impedance is 150 kOhm at 1x PGA
-    // With buffer input impedance is 80 MOhm
-    // Buffer works only for voltages lower than vdd-2v
-    registers[REG_STATUS] = ORDER_MSB_FIRST | ORDER_AUTO_CAL_DIS | ORDER_ABUFFER_EN;
-    registers[REG_MUX]    = ADS1256_AIN3_P | ADS1256_AINCOM_N;
-    registers[REG_ADCON]  = ADCON_CLK_OFF | ADCON_SENS_DTCT_OFF | gain;
-    registers[REG_DRATE]  = drate;
-
-    DEV_gpio_write(ADS1256_CS_PIN, 0);		// cs stays low during the whole command sequence
-		DEV_SPI_WriteByte(CMD_WREG | 0);	// address of the first register to be written
-		DEV_SPI_WriteByte(0x03);			// number of registers to be written minus 1
-		
-		DEV_SPI_WriteByte(registers[0]);
-		DEV_SPI_WriteByte(registers[1]);
-		DEV_SPI_WriteByte(registers[2]);
-		DEV_SPI_WriteByte(registers[3]);
-    DEV_gpio_write(ADS1256_CS_PIN, 1);
-
-    // wait until auto sampling comes back
-    WaitDRDY_();
-}
-
 
 void ADS1256::ConfigInputMultiplexer_(uint8_t uiPos, uint8_t uiNeg)
 {
@@ -325,6 +257,14 @@ float ADS1256::GetThermistorVoltage()
     if (!bPresentOnBus) return 0.0f;
 
 	return GetChannelValue(ADS1256_AIN2P_AINCOMN);
+}
+
+
+float ADS1256::GetReferenceVoltage()
+{
+    if (!bPresentOnBus) return 0.0f;
+
+	return GetChannelValue(ADS1256_AIN4P_AINCOMN);
 }
 
 

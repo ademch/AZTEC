@@ -1,7 +1,7 @@
 all: aztecbaro
 
-aztecbaro: main.o MS5611.o ADS1256.o Dev_config.o HTTP_Server.o ThreadSampling.o
-	g++ -g -Wall main.o MS5611.o ADS1256.o Dev_config.o HTTP_Server.o ThreadSampling.o -lwiringPi -o aztec.exe
+aztecbaro: main.o MS5611.o ADS1256.o DAC8552.o  Dev_config.o HTTP_Server.o ThreadSampling.o
+	g++ -g -Wall main.o MS5611.o ADS1256.o DAC8552.o Dev_config.o HTTP_Server.o ThreadSampling.o -lwiringPi -o aztec.exe
 	
 main.o: main.cpp
 	g++ -g -Wall -c main.cpp
@@ -11,6 +11,9 @@ MS5611.o: MS5611.cpp MS5611.h
 	
 ADS1256.o: ADS1256.cpp ADS1256.h
 	g++ -g -Wall -c ADS1256.cpp
+	
+DAC8552.o: DAC8552.cpp DAC8552.h
+	g++ -g -Wall -c DAC8552.cpp
 
 Dev_config.o: Dev_config.cpp Dev_config.h
 	g++ -g -Wall -c Dev_config.cpp

@@ -36,9 +36,9 @@ FILE* SaveDataLogStart(const char* strFilePath)
     tm *lclTime = localtime(&now);
     
     fprintf(fdFile, "\nStarted log on %d-%02d-%02d\n",
-            lclTime->tm_year + 1900,
-            lclTime->tm_mon+1,
-            lclTime->tm_mday);
+        lclTime->tm_year + 1900,
+        lclTime->tm_mon+1,
+        lclTime->tm_mday);
 
     fprintf(fdFile, "%s\t", "Timestamp");
 
@@ -114,7 +114,7 @@ void *samplingThreadFunc(void* ptr)
 {
     bTerminateThread = false;
     
-    printf("\nMonitoring thread started\n");
+    printf("\n* Monitoring thread started\n");
     
     char filePath[500] = {0};
     sprintf(filePath, "%s/log/Logfile.txt", DOCUMENT_ROOT);

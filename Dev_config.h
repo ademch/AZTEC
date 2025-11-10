@@ -7,6 +7,9 @@
 
 void _delayMS(unsigned int ms);
 
+int  PinConfigStart();
+void PinConfigExit();
+
 // GPIO read and write
 #define DEV_gpio_write(_pin, _value)     digitalWrite(_pin, (_value == 0) ? LOW : HIGH)
 #define DEV_gpio_read(_pin)              digitalRead(_pin)
