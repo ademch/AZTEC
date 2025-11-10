@@ -65,9 +65,9 @@ private:
 	int TEMP2;
 	long long int OFF2, SENS2;
 	
-	uint16_t readRegister16(unsigned char reg);
-	uint32_t readRegister24(unsigned char reg);
-	int      sendCommand(unsigned char reg);
+	uint16_t readRegister16_(unsigned char reg);
+	uint32_t readRegister24_(unsigned char reg);
+	int      sendCommand_(unsigned char reg);
 };
 
 #endif

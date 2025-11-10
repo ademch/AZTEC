@@ -20,6 +20,7 @@ ADS1256 ads1256;
 
 
 extern bool bTerminateThread;
+extern int connectionSocket;
 
 pthread_t thread;
 void* samplingThreadFunc(void* ptr);
@@ -35,8 +36,11 @@ void sigintHandler(int s)
     
     bTerminateThread = true;
     pthread_join(thread, NULL);
+    
+    if (connectionSocket != -1)
+        close(connectionSocket);
 
-    exit(EXIT_SUCCESS);
+    // exit is issued by accept in HTTP_Server
 }
 
 
@@ -46,7 +50,9 @@ int main(int argc, char *argv[])
 	
 	ads1256.PinConfigStart();
 	
-	ads1256.Init();
+    printf("\nInitializing MS5611\n");
+            
+    ads1256.Init();
 	
 	ads1256.ConfigADC(ADS1256_GAIN_1, ADS1256_25SPS);
 	

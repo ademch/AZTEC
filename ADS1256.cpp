@@ -36,7 +36,7 @@ int ADS1256::PinConfigStart()
     pinMode(ADS1256_DRDY_PIN,      	INPUT);		// defaults to INPUT pullup
     pinMode(DAC8552_CS_PIN,        	OUTPUT);	// defaults to INPUT pullup
 
-   	pullUpDnControl(ADS1256_DRDY_PIN,   PUD_DOWN);	// pull down in order WaitDRADY to return when DEVICE is not connected
+   	pullUpDnControl(ADS1256_DRDY_PIN,   PUD_DOWN);	// pull down in order WaitDRDY to return when DEVICE is not connected
 
    	DEV_gpio_write(ADS1256_RST_PIN,       1);
    	DEV_gpio_write(ADS1256_CS_PIN,        1);
@@ -92,12 +92,12 @@ uint8_t ADS1256::Init()
 	// This dummy read leaves lines at zero level
 	DEV_SPI_ReadByte();
 	
-	PowerOn();
+	PowerOn_();
 	
-    Reset();
+    Reset_();
     
     // SPI protocol has no hardware aknowledge
-    if(ReadChipID() == 3)
+    if(ReadChipID_() == 3)
     {
         printf("ADS1256 ID Read success\n");
         bPresentOnBus = true;
@@ -105,7 +105,7 @@ uint8_t ADS1256::Init()
     else
     {
         printf("ADS1256 ID Read failed\n");
-        //return 1;
+        return 1;
     }
     
     return 0;
@@ -114,7 +114,7 @@ uint8_t ADS1256::Init()
 
 // p.27 After reset calibartion registers are initialized to their default state
 //      After reset release self-calibartion is performed
-void ADS1256::Reset()
+void ADS1256::Reset_()
 {
     DEV_gpio_write(ADS1256_RST_PIN, 0);
     	DEV_Delay_ms(20);
@@ -122,35 +122,35 @@ void ADS1256::Reset()
         DEV_Delay_ms(20);
 
 	// wait until auto sampling comes back
-	WaitDRDY();
+	WaitDRDY_();
 }
 
 
 void ADS1256::SelfCalibrate()
 {
 	// wait for nice opportunity
-	WaitDRDY();
+	WaitDRDY_();
 	
-	WriteCmd(CMD_SELFCAL);
+	WriteCmd_(CMD_SELFCAL);
 	
 	// wait until auto sampling comes back
-	WaitDRDY();
+	WaitDRDY_();
 }
 
 // p.27 To exit power-down take the SYNC_PDWN high
 //      Crystal oscillator typically requires 30ms to wake up
-void ADS1256::PowerOn()
+void ADS1256::PowerOn_()
 {
    	DEV_gpio_write(ADS1256_SYNC_PDWN_PIN, 1);
         DEV_Delay_ms(30);
 
 	// wait for auto sampling comes back
-	WaitDRDY();
+	WaitDRDY_();
 }
 
 // p.27 Toggle SYNC_PDWN pin low to restart conversion
 //      reflecting changed parameters
-void ADS1256::Sync()
+void ADS1256::Sync_()
 {
    	DEV_gpio_write(ADS1256_SYNC_PDWN_PIN, 0);
         DEV_Delay_us(30);
@@ -158,7 +158,7 @@ void ADS1256::Sync()
 }
 
 // Send a single byte command
-void ADS1256::WriteCmd(uint8_t cmd)
+void ADS1256::WriteCmd_(uint8_t cmd)
 {
     DEV_gpio_write(ADS1256_CS_PIN, 0);
 		DEV_SPI_WriteByte(cmd);
@@ -166,7 +166,7 @@ void ADS1256::WriteCmd(uint8_t cmd)
 }
 
 // Write the data to a destination register
-void ADS1256::WriteReg(uint8_t reg, uint8_t data)
+void ADS1256::WriteReg_(uint8_t reg, uint8_t data)
 {
     DEV_gpio_write(ADS1256_CS_PIN, 0);		// cs stays low during the whole command sequence
 		DEV_SPI_WriteByte(CMD_WREG | reg);	// address of the first reigster to be written
@@ -176,7 +176,7 @@ void ADS1256::WriteReg(uint8_t reg, uint8_t data)
 }
 
 // Read a data from the destination register
-uint8_t ADS1256::ReadReg(uint8_t reg)
+uint8_t ADS1256::ReadReg_(uint8_t reg)
 {
     uint8_t temp = 0;
     
@@ -192,7 +192,7 @@ uint8_t ADS1256::ReadReg(uint8_t reg)
 }
 
 // DRDY goes low when new conversion data is available
-void ADS1256::WaitDRDY()
+void ADS1256::WaitDRDY_()
 {   
     uint32_t i;
     for (i=0; i < 100000; i++)
@@ -210,9 +210,9 @@ void ADS1256::WaitDRDY()
 }
 
 // Read device ID
-uint8_t ADS1256::ReadChipID()
+uint8_t ADS1256::ReadChipID_()
 {
-    uint8_t id = ReadReg(REG_STATUS);
+    uint8_t id = ReadReg_(REG_STATUS);
     
     printf("ReadReg: %d\n", id);
     
@@ -245,27 +245,27 @@ void ADS1256::ConfigADC(ADS1256_GAIN gain, uint8_t drate)
     DEV_gpio_write(ADS1256_CS_PIN, 1);
 
     // wait until auto sampling comes back
-    WaitDRDY();
+    WaitDRDY_();
 }
 
 
-void ADS1256::ConfigInputMultiplexer(uint8_t uiPos, uint8_t uiNeg)
+void ADS1256::ConfigInputMultiplexer_(uint8_t uiPos, uint8_t uiNeg)
 {
-    WriteReg(REG_MUX, uiPos | uiNeg);
+    WriteReg_(REG_MUX, uiPos | uiNeg);
 }
 
-void ADS1256::ConfigInputMultiplexer(uint8_t uiPosNeg)
+void ADS1256::ConfigInputMultiplexer_(uint8_t uiPosNeg)
 {
-    WriteReg(REG_MUX, uiPosNeg);
+    WriteReg_(REG_MUX, uiPosNeg);
 } 
 
 
-float ADS1256::Read_ADCdata()
+float ADS1256::Read_ADCdata_()
 {
     int32_t value = 0;
     uint8_t buf[3] = {0,0,0};
     
-    WaitDRDY();
+    WaitDRDY_();
     
     DEV_gpio_write(ADS1256_CS_PIN, 0);
 		DEV_SPI_WriteByte(CMD_RDATA);
@@ -300,14 +300,14 @@ float ADS1256::GetChannelValue(uint8_t uiPosNeg)
 	
 	printf("\n%s", ctime(&rawtime));
 
-	ConfigInputMultiplexer(uiPosNeg);
+	ConfigInputMultiplexer_(uiPosNeg);
 
     // wait for nice communication opportunity
-    WaitDRDY();
+    WaitDRDY_();
 	
-	Sync();
+	Sync_();
 	
-	return Read_ADCdata();
+	return Read_ADCdata_();
 }
 
 
@@ -423,7 +423,7 @@ void ADS1256::WriteOffsetCalibration(int iOffset)
     DEV_gpio_write(ADS1256_CS_PIN, 1);
 
     // wait until auto sampling comes back
-    WaitDRDY();
+    WaitDRDY_();
 }
 
 
@@ -443,7 +443,7 @@ void ADS1256::WriteScalingCalibration(unsigned int iScale)
     DEV_gpio_write(ADS1256_CS_PIN, 1);
 
     // wait until auto sampling comes back
-    WaitDRDY();
+    WaitDRDY_();
 }
 
 

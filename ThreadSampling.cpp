@@ -54,8 +54,8 @@ FILE* SaveDataLogStart(const char* strFilePath)
         fprintf(fdFile, "%s\t", "Temp B,°C");
         fprintf(fdFile, "%s\t", "Baro B,mBar");
     }
-    // FOA is always connected
-    if (1)
+    // if device connected
+    if (ads1256.IsConnected())
     {
         fprintf(fdFile, "%s\t", "Thermocouple,mV");
         fprintf(fdFile, "%s\t", "ThermistorV,V");
@@ -92,8 +92,8 @@ void SaveDataLog(FILE* fdFile)
         fprintf(fdFile, "%.3f\t", sampledValues.fTemp2);
         fprintf(fdFile, "%.3f\t", sampledValues.fPressure2);
     }
-    // FOA is always connected
-    if (1)
+    // if device connected
+    if (ads1256.IsConnected())
     {
         fprintf(fdFile, "%.3f\t", sampledValues.fThermocoupleVoltage*1000.0f);
         fprintf(fdFile, "%.3f\t", sampledValues.fThermistorVoltage);
@@ -108,7 +108,7 @@ void SaveDataLog(FILE* fdFile)
     fsync(fd);
 }
 
-extern const char* WORKD_PATH;
+extern const char* DOCUMENT_ROOT;
 
 void *samplingThreadFunc(void* ptr)
 {
@@ -117,7 +117,7 @@ void *samplingThreadFunc(void* ptr)
     printf("\nMonitoring thread started\n");
     
     char filePath[500] = {0};
-    sprintf(filePath, "%s/log/Logfile.txt", WORKD_PATH);
+    sprintf(filePath, "%s/log/Logfile.txt", DOCUMENT_ROOT);
     FILE* fdFile = SaveDataLogStart(filePath);
     
     if (!fdFile) return NULL;

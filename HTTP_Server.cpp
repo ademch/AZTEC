@@ -15,10 +15,12 @@
 #include "ThreadSampling.h"
 
 #define PORT 8081
-const char* WORKD_PATH= "/home/odroid/AZTEC";
 
+const char* DOCUMENT_ROOT= "/home/odroid/AZTEC/html";
 
 extern SampledValues sampledValues;
+
+int connectionSocket = -1;
 
 
 void sendGETresponse(int fd, char strFilePath[], char strResponse[]);
@@ -39,11 +41,12 @@ char aBuffer[4096] = {0};
 
 int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
 {
-    int connectionSocket, clientSocket, pid; 
+    int clientSocket, pid; 
     struct sockaddr_in address;
     int addrlen = sizeof(address);
     
-    if ((connectionSocket = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+    connectionSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (connectionSocket == -1)
     {
         perror("socket open failed\n");
         exit(EXIT_FAILURE);
@@ -75,10 +78,17 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
     while(1)
     {
         printf("\n+++++++ Main thread: Waiting for a new connection ++++++++\n\n");
-        if ((clientSocket = accept(connectionSocket, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0)
+        clientSocket = accept(connectionSocket, (struct sockaddr *)&address, (socklen_t*)&addrlen);
+        if (clientSocket == -1)
         {
-            perror("In accept");
-            exit(EXIT_FAILURE);
+            if (errno == EBADF) {
+                printf("Accept terminated on connectionSocket\n");
+                exit(EXIT_SUCCESS);
+            }
+            else {
+                perror("accept");
+                exit(EXIT_FAILURE);
+            }
         }
         
         //Create child process to handle request from different client
@@ -137,7 +147,7 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
                 {
                     //case that the strHTTP_requestPath = "/"  --> Send index.html file
 
-                    sprintf(strFilePath, "%s/index.html", WORKD_PATH);
+                    sprintf(strFilePath, "%s/index.html", DOCUMENT_ROOT);
                     sprintf(strResponse, "%s%s", HTTP_200HEADER, "Content-Type: text/html\r\n");
 
                     sendHEADresponse(clientSocket, strFilePath, strResponse);
@@ -150,7 +160,7 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
                     //case that the strHTTP_requestPath = "/"  --> Send index.html file
                     //write(clientSocket , httpHeader , strlen(httpHeader));
 
-                    sprintf(strFilePath, "%s/index.html", WORKD_PATH);
+                    sprintf(strFilePath, "%s/index.html", DOCUMENT_ROOT);
                     sprintf(strResponse, "%s%s", HTTP_200HEADER, "Content-Type: text/html\r\n");
 
                     sendGETresponse(clientSocket, strFilePath, strResponse);
@@ -288,7 +298,7 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
                 {
                     //send image to client
 
-                    sprintf(strFilePath, "%s%s", WORKD_PATH, strHTTP_requestPath);
+                    sprintf(strFilePath, "%s%s", DOCUMENT_ROOT, strHTTP_requestPath);
                     sprintf(strResponse, "%s%s", HTTP_200HEADER, "Content-Type: image/jpeg\r\n");
 
                     sendGETresponse(clientSocket, strFilePath, strResponse);
@@ -297,42 +307,42 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
                 {
                     //https://www.cisco.com/c/en/us/support/docs/security/web-security-appliance/117995-qna-wsa-00.html
 
-                    sprintf(strFilePath, "%s/img/favicon.png", WORKD_PATH);
+                    sprintf(strFilePath, "%s/img/favicon.png", DOCUMENT_ROOT);
                     sprintf(strResponse, "%s%s", HTTP_200HEADER, "Content-Type: image/vnd.microsoft.icon\r\n");
 
                     sendGETresponse(clientSocket, strFilePath, strResponse);
                 }
                 else if (!strcmp(strHTTPreqExt, "js"))
                 {
-                    sprintf(strFilePath, "%s%s", WORKD_PATH, strHTTP_requestPath);
+                    sprintf(strFilePath, "%s%s", DOCUMENT_ROOT, strHTTP_requestPath);
                     sprintf(strResponse, "%s%s", HTTP_200HEADER, "Content-Type: text/javascript\r\n");
 
                     sendGETresponse(clientSocket, strFilePath, strResponse);
                 }
                 else if (!strcmp(strHTTPreqExt, "gif"))
                 {
-                    sprintf(strFilePath, "%s%s", WORKD_PATH, strHTTP_requestPath);
+                    sprintf(strFilePath, "%s%s", DOCUMENT_ROOT, strHTTP_requestPath);
                     sprintf(strResponse, "%s%s", HTTP_200HEADER, "Content-Type: image/gif\r\n");
 
                     sendGETresponse(clientSocket, strFilePath, strResponse);
                 }
                 else if (!strcmp(strHTTPreqExt, "png"))
                 {
-                    sprintf(strFilePath, "%s%s", WORKD_PATH, strHTTP_requestPath);
+                    sprintf(strFilePath, "%s%s", DOCUMENT_ROOT, strHTTP_requestPath);
                     sprintf(strResponse, "%s%s", HTTP_200HEADER, "Content-Type: image/png\r\nCache-Control: max-age=3600\r\n");
 
                     sendGETresponse(clientSocket, strFilePath, strResponse);
                 }
                 else if (!strcmp(strHTTPreqExt, "css"))
                 {
-                    sprintf(strFilePath, "%s%s", WORKD_PATH, strHTTP_requestPath);
+                    sprintf(strFilePath, "%s%s", DOCUMENT_ROOT, strHTTP_requestPath);
                     sprintf(strResponse, "%s%s", HTTP_200HEADER, "Content-Type: text/css\r\n");
 
                     sendGETresponse(clientSocket, strFilePath, strResponse);
                 }
                 else  // unknown mime type
                 {
-                    sprintf(strFilePath, "%s%s", WORKD_PATH, strHTTP_requestPath);
+                    sprintf(strFilePath, "%s%s", DOCUMENT_ROOT, strHTTP_requestPath);
                     sprintf(strResponse, "%s%s", HTTP_200HEADER, "Content-Type: text/plain\r\n");
 
                     sendGETresponse(clientSocket, strFilePath, strResponse);
@@ -340,7 +350,7 @@ int CreateHTTPserver(MS5611* ms5611_1, MS5611* ms5611_2, ADS1256* ads1256)
             }
             else if (!strcmp(strHTTP_requestMethod, "PUT"))
             {
-                sprintf(strFilePath, "%s%s", WORKD_PATH, strHTTP_requestPath);
+                sprintf(strFilePath, "%s%s", DOCUMENT_ROOT, strHTTP_requestPath);
                 sprintf(strResponse, "%s", HTTP_201HEADER);
 
                 handlePUTrequest(clientSocket, strFilePath, ptrBuffer, iBytesRead, strResponse);

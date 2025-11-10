@@ -163,27 +163,28 @@ public:
 	
 	void WriteOffsetCalibration(int iOffset);
 	void WriteScalingCalibration(unsigned int iScale);
-	
+    
+    bool IsConnected();
 
 private:
 
 	bool bPresentOnBus;
 	
-	uint8_t ReadChipID();
-	void WaitDRDY();
+	uint8_t ReadChipID_();
+	void WaitDRDY_();
 	
-	void Reset();
-	void PowerOn();
-	void Sync();
+	void Reset_();
+	void PowerOn_();
+	void Sync_();
 	
-	void WriteCmd(uint8_t cmd);
-	void WriteReg(uint8_t reg, uint8_t data);
-	uint8_t ReadReg(uint8_t reg);
+	void WriteCmd_(uint8_t cmd);
+	void WriteReg_(uint8_t reg, uint8_t data);
+	uint8_t ReadReg_(uint8_t reg);
 
-	void ConfigInputMultiplexer(uint8_t uiPos, uint8_t uiNeg);
-	void ConfigInputMultiplexer(uint8_t uiPosNeg);
+	void ConfigInputMultiplexer_(uint8_t uiPos, uint8_t uiNeg);
+	void ConfigInputMultiplexer_(uint8_t uiPosNeg);
 	
-	float Read_ADCdata();
+	float Read_ADCdata_();
 
 };
 

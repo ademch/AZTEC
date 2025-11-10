@@ -45,7 +45,7 @@ void MS5611::closeBus()
 
 int MS5611::sendReset()
 {
-	int iRes = sendCommand(MS5611_CMD_RESET);
+	int iRes = sendCommand_(MS5611_CMD_RESET);
 	
 	if (iRes == 0)
 		bPresentOnBus = true;
@@ -58,14 +58,14 @@ void MS5611::readPROMcoefficients()
 {
 	if (!bPresentOnBus) return;
 	
-	coef0 = readRegister16(0xA0);
-	coef1 = readRegister16(MS5611_CMD_READ_PROM + (0 << 1));
-	coef2 = readRegister16(MS5611_CMD_READ_PROM + (1 << 1));
-	coef3 = readRegister16(MS5611_CMD_READ_PROM + (2 << 1));
-	coef4 = readRegister16(MS5611_CMD_READ_PROM + (3 << 1));
-	coef5 = readRegister16(MS5611_CMD_READ_PROM + (4 << 1));
-	coef6 = readRegister16(MS5611_CMD_READ_PROM + (5 << 1));
-	coef7 = readRegister16(0xAE);
+	coef0 = readRegister16_(0xA0);
+	coef1 = readRegister16_(MS5611_CMD_READ_PROM + (0 << 1));
+	coef2 = readRegister16_(MS5611_CMD_READ_PROM + (1 << 1));
+	coef3 = readRegister16_(MS5611_CMD_READ_PROM + (2 << 1));
+	coef4 = readRegister16_(MS5611_CMD_READ_PROM + (3 << 1));
+	coef5 = readRegister16_(MS5611_CMD_READ_PROM + (4 << 1));
+	coef6 = readRegister16_(MS5611_CMD_READ_PROM + (5 << 1));
+	coef7 = readRegister16_(0xAE);
 }
 
 
@@ -74,12 +74,12 @@ unsigned int MS5611::readRawTemperature(void)
 	if (!bPresentOnBus) return 0;
 
 	// start sampling
-	sendCommand(MS5611_CMD_CONV_D2 + uosr);
+	sendCommand_(MS5611_CMD_CONV_D2 + uosr);
 
 	// wait for sampling end
     _delayMS(20);
 
-    return readRegister24(MS5611_CMD_ADC_READ);
+    return readRegister24_(MS5611_CMD_ADC_READ);
 }
 
 
@@ -89,12 +89,12 @@ unsigned int MS5611::readRawPressure(void)
 	if (!bPresentOnBus) return 0;
 
 	// start sampling
-	sendCommand(MS5611_CMD_CONV_D1 + uosr);
+	sendCommand_(MS5611_CMD_CONV_D1 + uosr);
 
 	// wait for sampling end
     _delayMS(20);
 
-    return readRegister24(MS5611_CMD_ADC_READ);
+    return readRegister24_(MS5611_CMD_ADC_READ);
 }
 
 
@@ -165,7 +165,7 @@ double MS5611::getSeaLevel(double pressure, double altitude)
 }
 
 // Read 16-bit from register (MSB, LSB)
-uint16_t MS5611::readRegister16(unsigned char reg)
+uint16_t MS5611::readRegister16_(unsigned char reg)
 {
    	// set slave address
     if (ioctl(iDev, I2C_SLAVE, address) < 0)
@@ -191,7 +191,7 @@ uint16_t MS5611::readRegister16(unsigned char reg)
 
 
 // Read 24-bit from register (XSB, MSB, LSB)
-uint32_t MS5611::readRegister24(unsigned char reg)
+uint32_t MS5611::readRegister24_(unsigned char reg)
 {
   	// set slave address
     if (ioctl(iDev, I2C_SLAVE, address) < 0)
@@ -216,7 +216,7 @@ uint32_t MS5611::readRegister24(unsigned char reg)
 }
 
 
-int MS5611::sendCommand(unsigned char reg)
+int MS5611::sendCommand_(unsigned char reg)
 {
   	// set slave address
     if (ioctl(iDev, I2C_SLAVE, address) < 0)
