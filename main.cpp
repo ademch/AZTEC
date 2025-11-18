@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
         //~ int iScaleCoef = ads1256.ReadScalingCalibration();
         //~ printf("Calibration scale coefficient: %d\n", iScaleCoef);
         
-        //~ ads1256.SelfCalibrate();
+        ads1256.SelfCalibrate();
                 
         //~ iOffsetCoef = ads1256.ReadOffsetCalibration();
         //~ printf("Calibration offset coefficient: %d\n", iOffsetCoef);
@@ -75,10 +75,11 @@ int main(int argc, char *argv[])
         //~ iScaleCoef = ads1256.ReadScalingCalibration();
         //~ printf("Calibration scale coefficient: %d\n", iScaleCoef);
         
-                
+        // 1. We measure 0 volts to get offset
+        // 2. We measure 3v to get scale
         // Calibration values acquired from physical calibration
-        ads1256.WriteOffsetCalibration(-803);
-        ads1256.WriteScalingCalibration(3846000);	 // recent 3843750 // vs 3863056 factory // FLuke 3855000
+        //ads1256.WriteOffsetCalibration(-888);
+        ads1256.WriteScalingCalibration(3844730);	 // recent 3843750 // vs 3863056 factory // FLuke 3855000
                 
         int iOffsetCoef = ads1256.ReadOffsetCalibration();
         if (iOffsetCoef != 0) printf("Calibration offset coefficient: %d\n", iOffsetCoef);
@@ -96,24 +97,40 @@ int main(int argc, char *argv[])
             
         //	delayMicroseconds(1000000);
         //}
-		
-      
+        
+        float fV = ads1256.GetChannelValue(ADS1256_AIN_REF30_V);
+        printf("Reference voltage: %5.3fv\n", fV);
+
+ 
     printf("\n* Initializing DAC8552...\n");
-    
-        dac8552.SetChA_Voltage(1.4f);
-        if (!ads1256.IsConnected()) {
-            printf("Can not check DAC presence, because ADC has not been found\n");
-        }
-        else
-        {
-            if (fabs(ads1256.GetReferenceVoltage() - 1.4f) < 0.2)
-            {
-                printf("DAC found successfully\n");
-                dac8552.Init(true);
-            }
-            else
-                printf("DAC failed to respond\n");
-        }
+
+		dac8552.Init(true);
+		
+		dac8552.SetChA_Voltage(1.5f);
+
+		float fVoltage;
+		fVoltage = ads1256.GetChannelValue(ADS1256_AIN_THERMOCOUPLE_MINUS_V);
+		printf("Thermocouple B- voltage: %fv\n", fVoltage);
+
+		fVoltage = ads1256.GetChannelValue(ADS1256_AIN_THERMOCOUPLE_PLUS_V);
+		printf("Thermocouple B+ voltage: %fv\n", fVoltage);
+
+		fVoltage = ads1256.GetChannelValue(ADS1256_AIN_THERMOCOUPLE_V);
+		printf("Thermocouple voltage: %fv\n", fVoltage);
+		
+		fVoltage = ads1256.GetChannelValue(ADS1256_AIN_THERMISTOR_MINUS_V);
+		printf("Thermistor minus voltage: %fv\n", fVoltage);
+
+		fVoltage = ads1256.GetChannelValue(ADS1256_AIN_THERMISTOR_PLUS_V);
+		printf("Thermistor plus voltage: %fv\n", fVoltage);
+
+		fVoltage = ads1256.GetChannelValue(ADS1256_AIN_THERMISTOR_V);
+		printf("Thermistor voltage: %fv\n", fVoltage);
+		
+		fVoltage = ads1256.GetChannelValue(ADS1256_AIN_REF30_V);
+		printf("Ref 3v: %fv\n", fVoltage);
+        
+        //return 0;
     
     
     printf("\n* Initializing MS5611...\n");

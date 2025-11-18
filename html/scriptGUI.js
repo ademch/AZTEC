@@ -52,8 +52,8 @@
 	var fThermocoupleMin = 0;
 	var fThermocoupleMax = 20;
 	
-	var fThermistorVMin  = 1.5;
-	var fThermistorVMax  = 2.0;
+	var fThermistorVMin  = 0;
+	var fThermistorVMax  = 0.2;
 	
 	var fThermistorRMin  = 150;
 	var fThermistorRMax  = 200;

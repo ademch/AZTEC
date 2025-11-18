@@ -3,11 +3,13 @@
 #include "Dev_config.h"
 
 #include <unistd.h>
-
+#include <math.h>
 
 ADS1256::ADS1256()
 {
     bPresentOnBus = false;
+    
+    m_gain = ADS1256_GAIN_1;
 }
 
 
@@ -52,15 +54,17 @@ void ADS1256::ConfigADC(ADS1256_GAIN gain, uint8_t drate)
     registers[REG_ADCON]  = ADCON_CLK_OFF | ADCON_SENS_DTCT_OFF | gain;
     registers[REG_DRATE]  = drate;
 
-    DEV_gpio_write(ADS1256_CS_PIN, 0);		// cs stays low during the whole command sequence
-		DEV_SPI_WriteByte(CMD_WREG | 0);	// address of the first register to be written
-		DEV_SPI_WriteByte(0x03);			// number of registers to be written minus 1
+    DEV_gpio_write(ADS1256_CS_PIN, 0);				// cs stays low during the whole command sequence
+		DEV_SPI_WriteByte(CMD_WREG | REG_STATUS);	// address of the first register to be written
+		DEV_SPI_WriteByte(0x03);					// number of registers to be written minus 1
 		
 		DEV_SPI_WriteByte(registers[0]);
 		DEV_SPI_WriteByte(registers[1]);
 		DEV_SPI_WriteByte(registers[2]);
 		DEV_SPI_WriteByte(registers[3]);
     DEV_gpio_write(ADS1256_CS_PIN, 1);
+    
+    m_gain = gain;
 
     // wait until auto sampling comes back
     WaitDRDY_();
@@ -181,11 +185,6 @@ uint8_t ADS1256::ReadChipID_()
 }
 
 
-void ADS1256::ConfigInputMultiplexer_(uint8_t uiPos, uint8_t uiNeg)
-{
-    WriteReg_(REG_MUX, uiPos | uiNeg);
-}
-
 void ADS1256::ConfigInputMultiplexer_(uint8_t uiPosNeg)
 {
     WriteReg_(REG_MUX, uiPosNeg);
@@ -201,13 +200,13 @@ float ADS1256::Read_ADCdata_()
     
     DEV_gpio_write(ADS1256_CS_PIN, 0);
 		DEV_SPI_WriteByte(CMD_RDATA);
-		DEV_Delay_us(10);					// t6 (50 CLK 7.68MHz)
-		buf[0] = DEV_SPI_ReadByte();
-		buf[1] = DEV_SPI_ReadByte();
+			DEV_Delay_us(10);					// t6 (50 CLK 7.68MHz)
 		buf[2] = DEV_SPI_ReadByte();
+		buf[1] = DEV_SPI_ReadByte();
+		buf[0] = DEV_SPI_ReadByte();
     DEV_gpio_write(ADS1256_CS_PIN, 1);
-    
-    value = ((uint32_t)buf[0] << 16) | ((uint32_t)buf[1] << 8) | buf[2];
+
+    value = ((uint32_t)buf[2] << 16) | ((uint32_t)buf[1] << 8) | (uint32_t)buf[0];
     
     if (value & 0x800000)
     {
@@ -216,10 +215,14 @@ float ADS1256::Read_ADCdata_()
 	}
 	
 	float fValue = value;
-	float fMax = 0x7FFFFF;
+	
+	const float fMax   = 0x7FFFFF;
+    const float VREF25 = 2.5f;
+
+    fValue *= (2.0f*VREF25)/fMax;
+    fValue /= powf(2.0f, m_gain); 
     
-    //     5v max for PGA=1
-    return 2.0f*2.5f*fValue/fMax;
+    return fValue;
 }
 
 // 
@@ -227,10 +230,10 @@ float ADS1256::GetChannelValue(uint8_t uiPosNeg)
 {
     if (!bPresentOnBus) return 0.0f;
     
-	time_t rawtime;
-	time(&rawtime);
+//	time_t rawtime;
+//	time(&rawtime);
 	
-	printf("\n%s", ctime(&rawtime));
+//	printf("\n%s", ctime(&rawtime));
 
 	ConfigInputMultiplexer_(uiPosNeg);
 
@@ -243,44 +246,22 @@ float ADS1256::GetChannelValue(uint8_t uiPosNeg)
 }
 
 
-float ADS1256::GetThermocoupleVoltage()
-{
-    if (!bPresentOnBus) return 0.0f;
-
-	return GetChannelValue(ADS1256_AIN3P_AINCOMN);
-}
-
-
-
-float ADS1256::GetThermistorVoltage()
-{
-    if (!bPresentOnBus) return 0.0f;
-
-	return GetChannelValue(ADS1256_AIN2P_AINCOMN);
-}
-
-
-float ADS1256::GetReferenceVoltage()
-{
-    if (!bPresentOnBus) return 0.0f;
-
-	return GetChannelValue(ADS1256_AIN4P_AINCOMN);
-}
-
 
 float ADS1256::GetThermistorResistance()
 {
     if (!bPresentOnBus) return 0.0f;
     
-	float fVoltage = GetThermistorVoltage();
+	float fVoltage = GetChannelValue(ADS1256_AIN_THERMISTOR_V);
 	
-	// (Uref - U)    Rref
-	// ----------- = ----   =>
-	//      U         Rx
+	// I  =            3v / (R1 + Rx + R2)
+	// Vx = I*Rx = Rx* 3v / (R1 + Rx + R2)
+
+	// Rx = Vx*(R1 + R2)/(3v - Vx)
 	
-	// Rx = (Rref * U) / (Uref - U)
+	const float REF30_V  		 = 2.9795f;
+	const float R1_R2_RESISTANCE = 1525.0f;	// <-- tweaked value to match physical resistance
 	
-	return fVoltage * ETALON_RESISTANCE / (REF_VOLTAGE - fVoltage);
+	return fVoltage * (R1_R2_RESISTANCE + R1_R2_RESISTANCE) / (REF30_V - fVoltage);
 }
 
 // Returns ThC and ThR values to sample once
@@ -289,7 +270,7 @@ float ADS1256::GetThermistorResistance()
 //~ {
     //~ if (!bPresentOnBus) return 0.0f;
     
-	//~ fThCvoltage = GetThermocoupleVoltage();
+	//~ fThCvoltage = GetChannelValue(ADS1256_AIN_THERMOCOUPLE);
 	//~ fThR        = GetThermistorResistance();
 	
 	//~ return ( (fThCvoltage*1000.0f) / (1.0f + 0.0166f * (fThR - 177.0f))) / 3.11f;
@@ -303,16 +284,16 @@ int ADS1256::ReadOffsetCalibration()
     int32_t value = 0;
     uint8_t buf[3] = {0,0,0};
 
-    DEV_gpio_write(ADS1256_CS_PIN, 0);		// cs stays low during the whole command sequence
-		DEV_SPI_WriteByte(CMD_RREG | 5);	// address of the first register to be written
-		DEV_SPI_WriteByte(0x02);			// number of registers to be written minus 1
-			DEV_Delay_us(10);				// t6 (50 CLK 7.68MHz)
-		buf[2] = DEV_SPI_ReadByte();
-		buf[1] = DEV_SPI_ReadByte();
+    DEV_gpio_write(ADS1256_CS_PIN, 0);			// cs stays low during the whole command sequence
+		DEV_SPI_WriteByte(CMD_RREG | REG_OFC0);	// address of the first register to be read
+		DEV_SPI_WriteByte(0x02);				// number of registers to be written minus 1
+			DEV_Delay_us(10);					// t6 (50 CLK 7.68MHz)
 		buf[0] = DEV_SPI_ReadByte();
+		buf[1] = DEV_SPI_ReadByte();
+		buf[2] = DEV_SPI_ReadByte();
     DEV_gpio_write(ADS1256_CS_PIN, 1);
     
-    value = ((uint32_t)buf[0] << 16) | ((uint32_t)buf[1] << 8) | buf[2];
+    value = ((uint32_t)buf[2] << 16) | ((uint32_t)buf[1] << 8) | (uint32_t)buf[0];
     
     if (value & 0x800000)
     {
@@ -332,16 +313,16 @@ unsigned int ADS1256::ReadScalingCalibration()
     int32_t value = 0;
     uint8_t buf[3] = {0,0,0};
 
-    DEV_gpio_write(ADS1256_CS_PIN, 0);		// cs stays low during the whole command sequence
-		DEV_SPI_WriteByte(CMD_RREG | 8);	// address of the first register to be written
-		DEV_SPI_WriteByte(0x02);			// number of registers to be written minus 1
-			DEV_Delay_us(10);				// t6 (50 CLK 7.68MHz)
-		buf[2] = DEV_SPI_ReadByte();
-		buf[1] = DEV_SPI_ReadByte();
+    DEV_gpio_write(ADS1256_CS_PIN, 0);			// cs stays low during the whole command sequence
+		DEV_SPI_WriteByte(CMD_RREG | REG_FSC0);	// address of the first register to be read
+		DEV_SPI_WriteByte(0x02);				// number of registers to be written minus 1
+			DEV_Delay_us(10);					// t6 (50 CLK 7.68MHz)
 		buf[0] = DEV_SPI_ReadByte();
+		buf[1] = DEV_SPI_ReadByte();
+		buf[2] = DEV_SPI_ReadByte();
     DEV_gpio_write(ADS1256_CS_PIN, 1);
     
-    value = ((uint32_t)buf[0] << 16) | ((uint32_t)buf[1] << 8) | buf[2];
+    value = ((uint32_t)buf[2] << 16) | ((uint32_t)buf[1] << 8) | (uint32_t)buf[0];
     
 	return value;
 }
@@ -351,9 +332,9 @@ void ADS1256::WriteOffsetCalibration(int iOffset)
 {
 	if (!bPresentOnBus) return;
     
-    DEV_gpio_write(ADS1256_CS_PIN, 0);		// cs stays low during the whole command sequence
-		DEV_SPI_WriteByte(CMD_WREG | 5);	// address of the first register to be written
-		DEV_SPI_WriteByte(0x02);			// number of registers to be written minus 1
+    DEV_gpio_write(ADS1256_CS_PIN, 0);			// cs stays low during the whole command sequence
+		DEV_SPI_WriteByte(CMD_WREG | REG_OFC0);	// address of the first register to be written
+		DEV_SPI_WriteByte(0x02);				// number of registers to be written minus 1
 		
 		DEV_SPI_WriteByte(iOffset);
 			iOffset = iOffset >> 8;
@@ -371,9 +352,9 @@ void ADS1256::WriteScalingCalibration(unsigned int iScale)
 {
 	if (!bPresentOnBus) return;
 	
-    DEV_gpio_write(ADS1256_CS_PIN, 0);		// cs stays low during the whole command sequence
-		DEV_SPI_WriteByte(CMD_WREG | 8);	// address of the first register to be written
-		DEV_SPI_WriteByte(0x02);			// number of registers to be written minus 1
+    DEV_gpio_write(ADS1256_CS_PIN, 0);			// cs stays low during the whole command sequence
+		DEV_SPI_WriteByte(CMD_WREG | REG_FSC0);	// address of the first register to be written
+		DEV_SPI_WriteByte(0x02);				// number of registers to be written minus 1
 		
 		DEV_SPI_WriteByte(iScale);
 			iScale = iScale >> 8;

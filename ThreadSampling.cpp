@@ -126,28 +126,28 @@ void *samplingThreadFunc(void* ptr)
     {
         sampledValues.fTemp1  = ms5611_1.readTemperature();
         sampledValues.fTemp2  = ms5611_2.readTemperature();
-        
+ 
         sampledValues.fPressure1  = ms5611_1.readPressure();
         sampledValues.fPressure2  = ms5611_2.readPressure();
-        
-        sampledValues.fThermocoupleVoltage    = ads1256.GetThermocoupleVoltage();
-        sampledValues.fThermistorVoltage      = ads1256.GetThermistorVoltage();
+ 
+        sampledValues.fThermocoupleVoltage    = ads1256.GetChannelValue(ADS1256_AIN_THERMOCOUPLE_V);
+        sampledValues.fThermistorVoltage      = ads1256.GetChannelValue(ADS1256_AIN_THERMISTOR_V);
         sampledValues.fThermistorResistance   = ads1256.GetThermistorResistance();
-        
+ 
         const float K20    = 3.11;      // mV*m^2 / kW
         const float alpha  = 0.0166;
-        const float Rconst = 177.0;     // Ohm
-        const float Vzero  = 10.041;    // zero level
-        
+        const float Rconst = 177.0;     // ohm
+        const float Vzero  = 0.0;    	// zero level compensation
+ 
         // shortcuts for code readability
         const float fThermistorR  = sampledValues.fThermistorResistance;
         const float fThCvoltageMV = sampledValues.fThermocoupleVoltage*1000.0f;
-        
+  
         sampledValues.fFlux  = ((fThCvoltageMV - Vzero) / (1.0 + alpha * (fThermistorR - Rconst))) / K20;
         sampledValues.fFlux *= 1000;    // convert kW to Watts
-        
+  
         SaveDataLog(fdFile);
-        
+ 
         sleep(1);
     }
     

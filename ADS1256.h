@@ -3,19 +3,17 @@
 
 #include <stdint.h>
 
-#define REF_VOLTAGE         2.9795f
-#define ETALON_RESISTANCE   181.875f
 
 // channel gain
 typedef enum
 {
-	ADS1256_GAIN_1			= 0,	// GAIN   1
-	ADS1256_GAIN_2			= 1,	// GAIN   2
-	ADS1256_GAIN_4			= 2,	// GAIN   4
-	ADS1256_GAIN_8			= 3,	// GAIN   8
-	ADS1256_GAIN_16			= 4,	// GAIN  16
-	ADS1256_GAIN_32			= 5,	// GAIN  32
-	ADS1256_GAIN_64			= 6 	// GAIN  64
+	ADS1256_GAIN_1			= 0,
+	ADS1256_GAIN_2			= 1,
+	ADS1256_GAIN_4			= 2,
+	ADS1256_GAIN_8			= 3,
+	ADS1256_GAIN_16			= 4,
+	ADS1256_GAIN_32			= 5,
+	ADS1256_GAIN_64			= 6
 	
 } ADS1256_GAIN;
 
@@ -58,14 +56,28 @@ typedef enum
 #define ADS1256_AIN7_P    0b01110000
 #define ADS1256_AINCOM_P  0b10000000
 
-// Thermoresistor
-#define ADS1256_AIN2P_AINCOMN  (ADS1256_AIN2_P | ADS1256_AINCOM_N)
+// Thermoresistor voltage
+#define ADS1256_AIN_THERMISTOR_V   			(ADS1256_AIN7_N | ADS1256_AIN6_P)
 
-// Thermocouple
-#define ADS1256_AIN3P_AINCOMN  (ADS1256_AIN3_P | ADS1256_AINCOM_N)
+// Thermoresistor leg R2
+#define ADS1256_AIN_THERMISTOR_MINUS_V 		(ADS1256_AINCOM_N | ADS1256_AIN7_P)
 
-// Ref voltage
-#define ADS1256_AIN4P_AINCOMN  (ADS1256_AIN4_P | ADS1256_AINCOM_N)
+// Thermoresistor leg R1
+#define ADS1256_AIN_THERMISTOR_PLUS_V 		(ADS1256_AINCOM_N | ADS1256_AIN6_P)
+
+
+// Thermocouple voltage
+#define ADS1256_AIN_THERMOCOUPLE_V 			(ADS1256_AIN4_N | ADS1256_AIN5_P)
+
+// Thermocouple leg B-
+#define ADS1256_AIN_THERMOCOUPLE_MINUS_V 	(ADS1256_AINCOM_N | ADS1256_AIN4_P)
+
+// Thermocouple leg B+
+#define ADS1256_AIN_THERMOCOUPLE_PLUS_V 	(ADS1256_AINCOM_N | ADS1256_AIN5_P)
+
+
+// Ref 3.0 voltage
+#define ADS1256_AIN_REF30_V		   			(ADS1256_AINCOM_N | ADS1256_AIN3_P)
 
 typedef enum
 {
@@ -145,11 +157,7 @@ public:
 
 	float GetChannelValue(uint8_t uiPosNeg);
 	
-	float GetThermistorVoltage();
 	float GetThermistorResistance();
-    float GetReferenceVoltage();
-	
-	float GetThermocoupleVoltage();
 	
 	//float GetFlux(float& fThCvoltage, float& fThR);
 	
@@ -167,6 +175,8 @@ private:
 
 	bool bPresentOnBus;
 	
+	ADS1256_GAIN m_gain;
+	
 	uint8_t ReadChipID_();
 	void WaitDRDY_();
 	
@@ -178,7 +188,6 @@ private:
 	void WriteReg_(uint8_t reg, uint8_t data);
 	uint8_t ReadReg_(uint8_t reg);
 
-	void ConfigInputMultiplexer_(uint8_t uiPos, uint8_t uiNeg);
 	void ConfigInputMultiplexer_(uint8_t uiPosNeg);
 	
 	float Read_ADCdata_();

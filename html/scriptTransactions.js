@@ -237,7 +237,15 @@
 				
 				fThermResistance = parseFloat(summary);
 				
-				$("idThermistorRLabel").textContent = "Thermistor R: " + fThermResistance.toFixed(2) + " Ω";
+				if (Math.abs(fThermResistance) < 100000)
+				{
+					$("idThermistorRLabel").textContent = "Thermistor R: " + fThermResistance.toFixed(2) + " Ω";
+				}
+				else
+				{
+					$("idThermistorRLabel").textContent = "Thermistor R: OPEN!";
+					fThermResistance = 100000;
+				}
 				
 				let point = {};
 				point.value = fThermResistance;
