@@ -134,16 +134,16 @@ void *samplingThreadFunc(void* ptr)
         sampledValues.fThermistorVoltage      = ads1256.GetChannelValue(ADS1256_AIN_THERMISTOR_V);
         sampledValues.fThermistorResistance   = ads1256.GetThermistorResistance();
  
-        const float K20    = 3.11;      // mV*m^2 / kW
-        const float alpha  = 0.0166;
-        const float Rconst = 177.0;     // ohm
-        const float Vzero  = 0.0;    	// zero level compensation
+        const float K20     = 3.11;      // mV*m^2 / kW
+        const float alpha   = 0.0166;
+        const float Rconst  = 177.0;     // ohm
+        const float Rleads  = 1.0;    	 // leads compensation
  
         // shortcuts for code readability
-        const float fThermistorR  = sampledValues.fThermistorResistance;
+        const float fThermistorR  = sampledValues.fThermistorResistance - Rleads;
         const float fThCvoltageMV = sampledValues.fThermocoupleVoltage*1000.0f;
   
-        sampledValues.fFlux  = ((fThCvoltageMV - Vzero) / (1.0 + alpha * (fThermistorR - Rconst))) / K20;
+        sampledValues.fFlux  = (fThCvoltageMV / (1.0 + alpha * (fThermistorR - Rconst))) / K20;
         sampledValues.fFlux *= 1000;    // convert kW to Watts
   
         SaveDataLog(fdFile);

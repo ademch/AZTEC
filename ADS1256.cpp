@@ -259,7 +259,7 @@ float ADS1256::GetThermistorResistance()
 	// Rx = Vx*(R1 + R2)/(3v - Vx)
 	
 	const float REF30_V  		 = 2.9795f;
-	const float R1_R2_RESISTANCE = 1525.0f;	// <-- tweaked value to match physical resistance
+	const float R1_R2_RESISTANCE = 1528.0f;	// <-- tweaked value to match physical resistance
 	
 	return fVoltage * (R1_R2_RESISTANCE + R1_R2_RESISTANCE) / (REF30_V - fVoltage);
 }

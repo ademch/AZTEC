@@ -75,11 +75,11 @@ int main(int argc, char *argv[])
         //~ iScaleCoef = ads1256.ReadScalingCalibration();
         //~ printf("Calibration scale coefficient: %d\n", iScaleCoef);
         
-        // 1. We measure 0 volts to get offset
-        // 2. We measure 3v to get scale
+        // 1. Measure 0 volts to get offset
+        // 2. Measure 3v to get scale
         // Calibration values acquired from physical calibration
-        //ads1256.WriteOffsetCalibration(-888);
-        ads1256.WriteScalingCalibration(3844730);	 // recent 3843750 // vs 3863056 factory // FLuke 3855000
+        ads1256.WriteOffsetCalibration(-809);
+        ads1256.WriteScalingCalibration(3844200);	 // recent 3843750 // vs 3863056 factory // FLuke 3855000
                 
         int iOffsetCoef = ads1256.ReadOffsetCalibration();
         if (iOffsetCoef != 0) printf("Calibration offset coefficient: %d\n", iOffsetCoef);
